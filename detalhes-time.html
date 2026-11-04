@@ -6,16 +6,44 @@
     <title>Perfil do Time · RED CANUDOS</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+        .main-container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 2rem 2.5rem !important;
+            box-sizing: border-box;
+        }
+        .sidebar-card {
+            max-width: 100% !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+        .roster-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+            gap: 1.5rem !important;
+            margin-top: 1.5rem !important;
+            width: 100% !important;
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
     <!-- NAVBAR PADRONIZADA -->
     <header class="navbar">
         <div class="nav-container">
-            <div class="logo-brand">
+            <a href="index.html" class="logo-brand">
                 <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
                 <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
-            </div>
+            </a>
             <nav class="nav-links">
                 <a href="index.html">Início</a>
                 <a href="times.html" class="active">Times</a>
@@ -23,8 +51,9 @@
                 <a href="partidas.html">Partidas</a>
                 <a href="tabela.html">Tabela</a>
                 <a href="estatisticas.html">Estatísticas</a>
-                <a href="regras.html">Regras</a>
+                <a href="noticias.html">Notícias</a>
                 <a href="hall.html">Hall of Canudos</a>
+                <a href="regras.html">Regras</a>
             </nav>
             <div class="menu-toggle" id="menuToggle">
                 <i class="fa-solid fa-bars"></i>
@@ -46,12 +75,12 @@
         </section>
 
         <!-- PLANTEL / JOGADORES DO TIME -->
-        <section class="sidebar-card">
+        <section class="sidebar-card" style="padding: 2rem;">
             <div class="section-title-bar">
                 <h2><i class="fa-solid fa-users"></i> PLANTEL DA EQUIPE</h2>
             </div>
 
-            <div id="gridJogadoresTime" class="admin-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div id="gridJogadoresTime" class="roster-grid">
                 <p class="loading-text">Carregando jogadores...</p>
             </div>
         </section>
@@ -112,7 +141,6 @@
                     logoHtml = `<div style="width: 100px; height: 100px; background: var(--bg-main); border: 3px solid var(--red-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 900; color: #fff; margin: 0 auto 1.2rem auto; box-shadow: 0 4px 15px rgba(229,9,20,0.3);">${nomeTime.charAt(0)}</div>`;
                 }
 
-                // Renderiza o cabeçalho do perfil
                 document.getElementById('timeHeader').innerHTML = `
                     ${logoHtml}
                     <h1 style="font-size: 2.2rem; color: #fff; margin-bottom: 0.3rem;">${nomeTime} ${dados.tag ? `[${dados.tag}]` : ''}</h1>
@@ -123,7 +151,6 @@
                     </div>
                 `;
 
-                // Renderiza o Plantel de Jogadores Cadastrados
                 const gridJogadores = document.getElementById('gridJogadoresTime');
                 const plantel = dados.plantel || [];
 
@@ -133,34 +160,44 @@
                 }
 
                 gridJogadores.innerHTML = '';
-plantel.forEach(j => {
-    const cardJ = document.createElement('div');
-    cardJ.className = 'sidebar-card';
-    cardJ.style.padding = '1.2rem';
-    cardJ.style.textAlign = 'center';
-    cardJ.style.background = 'var(--bg-main)';
+                plantel.forEach(j => {
+                    const cardJ = document.createElement('div');
+                    cardJ.style.background = 'var(--bg-main)';
+                    cardJ.style.border = '1px solid var(--border-color)';
+                    cardJ.style.borderRadius = '8px';
+                    cardJ.style.padding = '1.5rem 1rem';
+                    cardJ.style.textAlign = 'center';
+                    cardJ.style.display = 'flex';
+                    cardJ.style.flexDirection = 'column';
+                    cardJ.style.alignItems = 'center';
+                    cardJ.style.justifyContent = 'space-between';
+                    cardJ.style.transition = 'transform 0.2s, border-color 0.2s';
 
-    // Renderiza a foto do jogador ou o ícone padrão
-    let avatarHtml = '';
-    if (j.fotoUrl && j.fotoUrl.trim() !== '') {
-        avatarHtml = `<img src="${j.fotoUrl}" alt="${j.nick}" style="width: 65px; height: 65px; object-fit: cover; border-radius: 50%; border: 2px solid var(--red-primary); margin: 0 auto 0.8rem auto; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">`;
-    } else {
-        avatarHtml = `<div style="width: 65px; height: 65px; background: #232732; border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.8rem auto; color: var(--red-primary); font-size: 1.4rem; font-weight: bold;"><i class="fa-solid fa-user"></i></div>`;
-    }
+                    cardJ.onmouseover = () => { cardJ.style.transform = 'translateY(-4px)'; cardJ.style.borderColor = 'var(--red-primary)'; };
+                    cardJ.onmouseout = () => { cardJ.style.transform = 'translateY(0)'; cardJ.style.borderColor = 'var(--border-color)'; };
 
-    let opggBtn = '';
-    if (j.opgg && j.opgg.trim() !== '') {
-        opggBtn = `<a href="${j.opgg}" target="_blank" style="display: inline-block; margin-top: 0.8rem; background: #31313c; color: #5383e8; border: 1px solid #5383e855; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-decoration: none;"><i class="fa-solid fa-external-link-alt"></i> OP.GG</a>`;
-    }
+                    let avatarHtml = '';
+                    if (j.fotoUrl && j.fotoUrl.trim() !== '') {
+                        avatarHtml = `<img src="${j.fotoUrl}" alt="${j.nick}" style="width: 75px; height: 75px; object-fit: cover; border-radius: 50%; border: 2px solid var(--red-primary); margin: 0 auto 0.8rem auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">`;
+                    } else {
+                        avatarHtml = `<div style="width: 75px; height: 75px; background: #232732; border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.8rem auto; color: var(--red-primary); font-size: 1.5rem; font-weight: bold;"><i class="fa-solid fa-user"></i></div>`;
+                    }
 
-    cardJ.innerHTML = `
-        ${avatarHtml}
-        <h4 style="color: #fff; font-size: 1.05rem; margin-bottom: 0.2rem;">${j.nick}</h4>
-        <span style="color: var(--red-primary); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; background: rgba(229,9,20,0.1); padding: 0.2rem 0.6rem; border-radius: 4px; display: inline-block; margin-bottom: 0.3rem;">${j.funcao || 'Titular'}</span>
-        <div>${opggBtn}</div>
-    `;
-    gridJogadores.appendChild(cardJ);
-});
+                    let opggBtn = '';
+                    if (j.opgg && j.opgg.trim() !== '') {
+                        opggBtn = `<a href="${j.opgg}" target="_blank" style="display: inline-block; margin-top: 0.8rem; background: #31313c; color: #5383e8; border: 1px solid #5383e855; padding: 0.3rem 0.7rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-decoration: none;"><i class="fa-solid fa-external-link-alt"></i> OP.GG</a>`;
+                    }
+
+                    cardJ.innerHTML = `
+                        <div>
+                            ${avatarHtml}
+                            <h3 style="color: #fff; font-size: 1.05rem; margin-bottom: 0.3rem;">${j.nick}</h3>
+                            <span style="color: var(--red-primary); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: rgba(229,9,20,0.1); padding: 0.25rem 0.7rem; border-radius: 4px; display: inline-block;">${j.funcao || 'Titular'}</span>
+                        </div>
+                        <div>${opggBtn}</div>
+                    `;
+                    gridJogadores.appendChild(cardJ);
+                });
             } catch (err) {
                 console.error("Erro ao carregar perfil do time:", err);
             }

@@ -7,21 +7,56 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Força a página a ocupar 100% da tela sem restrições */
+        body {
+            overflow-x: hidden;
+        }
+        .main-container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 2rem 2.5rem !important;
+            box-sizing: border-box;
+        }
+        .sidebar-card {
+            max-width: 100% !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        /* Ajuste responsivo do Banner para telas menores (celular) */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem !important;
+            }
+            .banner-hero {
+                padding: 1.5rem 1rem !important;
+            }
+            .banner-hero h1 {
+                font-size: 1.6rem !important; /* Reduz o título no celular para não cortar */
+                letter-spacing: 1px !important;
+            }
+            .banner-hero .banner-subtitle {
+                font-size: 0.75rem !important;
+            }
+        }
+
+        /* Grid inteligente que preenche a tela inteira com vários cards por linha */
         .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
+            gap: 1.5rem !important;
+            margin-top: 1.5rem !important;
+            width: 100% !important;
         }
         .player-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 1.5rem;
+            padding: 1.5rem 1rem;
             text-align: center;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centraliza todos os filhos horizontalmente */
+            align-items: center;
             justify-content: space-between;
             position: relative;
             transition: transform 0.2s, border-color 0.2s;
@@ -38,14 +73,13 @@
             object-position: center; 
             border: 2px solid var(--red-primary);
             background: var(--bg-main);
-            /* Removemos margens automáticas ou fixas que pudessem entortar */
             margin: 0 auto 1rem auto; 
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             color: var(--red-primary);
-            font-size: 1.8rem;
+            font-size: 1.6rem;
         }
         .player-role-badge {
             background: rgba(229,9,20,0.1);
@@ -62,7 +96,7 @@
             font-size: 0.8rem;
             color: var(--text-muted);
             font-weight: 700;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.6rem;
             text-transform: uppercase;
         }
     </style>
@@ -71,7 +105,7 @@
 
     <!-- NAVBAR PADRONIZADA -->
     <header class="navbar">
-        <div class="nav-container">
+        <div class="nav-container" style="max-width: 98% !important;">
             <div class="logo-brand">
                 <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
                 <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
@@ -84,7 +118,7 @@
                 <a href="tabela.html">Tabela</a>
                 <a href="estatisticas.html">Estatísticas</a>
                 <a href="noticias.html">Notícias</a>
-                <a href="hall.html"> Hall of Canudos</a>
+                <a href="hall.html" style="color: var(--red-primary); font-weight: 800;"><i class="fa-solid fa-trophy"></i> Hall of Canudos</a>
                 <a href="regras.html">Regras</a>
             </nav>
             <div class="menu-toggle" id="menuToggle">
@@ -102,7 +136,7 @@
             </div>
         </div>
 
-        <section class="sidebar-card" style="margin-bottom: 2.5rem;">
+        <section class="sidebar-card" style="margin-bottom: 2.5rem; padding: 2rem;">
             <div class="section-title-bar">
                 <h2><i class="fa-solid fa-users"></i> FILTRAR JOGADORES</h2>
             </div>
@@ -192,7 +226,6 @@
                     }
                 });
 
-                // Preenche o select de times
                 selectTeam.innerHTML = '<option value="TODOS">Todos os Times</option>';
                 timesDisponiveis.forEach(t => {
                     selectTeam.innerHTML += `<option value="${t}">${t}</option>`;
@@ -238,14 +271,14 @@
 
                 let opggBtn = '';
                 if (j.opgg && j.opgg.trim() !== '') {
-                    opggBtn = `<a href="${j.opgg}" target="_blank" style="display: inline-block; margin-top: 1rem; background: #31313c; color: #5383e8; border: 1px solid #5383e855; padding: 0.35rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-decoration: none;"><i class="fa-solid fa-external-link-alt"></i> OP.GG</a>`;
+                    opggBtn = `<a href="${j.opgg}" target="_blank" style="display: inline-block; margin-top: 0.8rem; background: #31313c; color: #5383e8; border: 1px solid #5383e855; padding: 0.3rem 0.7rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-decoration: none;"><i class="fa-solid fa-external-link-alt"></i> OP.GG</a>`;
                 }
 
                 card.innerHTML = `
                     <div>
                         ${avatarHtml}
                         <span class="player-team-name"><i class="fa-solid fa-shield-halved"></i> ${j.time}</span>
-                        <h3 style="color: #fff; font-size: 1.15rem; margin-bottom: 0.2rem;">${j.nick}</h3>
+                        <h3 style="color: #fff; font-size: 1.05rem; margin-bottom: 0.2rem;">${j.nick}</h3>
                         <span class="player-role-badge">${j.funcao || 'TITULAR'}</span>
                     </div>
                     <div>${opggBtn}</div>

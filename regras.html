@@ -13,18 +13,20 @@
     <!-- CABEÇALHO / NAVBAR COMPLETA -->
     <header class="navbar">
         <div class="nav-container">
-            <div class="logo-brand">
+            <a href="index.html" class="logo-brand">
                 <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
                 <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
-            </div>
+            </a>
             <nav class="nav-links">
+                <a href="index.html">Início</a>
                 <a href="times.html">Times</a>
                 <a href="jogadores.html">Jogadores</a>
                 <a href="partidas.html">Partidas</a>
                 <a href="tabela.html">Tabela</a>
                 <a href="estatisticas.html">Estatísticas</a>
-                <a href="regras.html" class="active">Regras</a>
+                <a href="noticias.html">Notícias</a>
                 <a href="hall.html">Hall of Canudos</a>
+                <a href="regras.html" class="active">Regras</a>
             </nav>
             <div class="menu-toggle" id="menuToggle">
                 <i class="fa-solid fa-bars"></i>
@@ -35,100 +37,91 @@
     <!-- CONTEÚDO DA PÁGINA DE REGRAS -->
     <main class="main-container rules-page">
 
-        <!-- CABEÇALHO DA LEGISLAÇÃO ESTILO CBLOW -->
-        <div class="rules-header-banner">
-            <img src="Logo Canudos.png" alt="RED Canudos Emblem" class="rules-emblem">
-            <div class="legislation-title">
-                <h2>Legislação Oficial</h2>
-                <p>RED CANUDOS · 2026</p>
-            </div>
-            <div class="legislation-stats">
-                <span><strong>6</strong> Capítulos</span>
-                <span><strong>Regulamento</strong> Oficial</span>
+        <!-- BANNER HERO PADRONIZADO -->
+        <div class="banner-hero">
+            <div class="banner-content">
+                <img src="Logo Canudos.png" alt="RED Canudos Emblem" class="hero-logo" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 0.5rem; filter: drop-shadow(0 0 10px rgba(229, 9, 20, 0.5));">
+                <h1>LEGISLAÇÃO OFICIAL</h1>
+                <p class="banner-subtitle">RED CANUDOS · REGULAMENTO 2026</p>
             </div>
         </div>
 
         <!-- AVISO IMPORTANTE -->
-        <div class="rules-warning-box">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <p><strong>IMPORTANTE:</strong> Ao se inscrever no campeonato o jogador está ciente e aceitou todas as regras do campeonato. O não cumprimento das regras estipuladas pode causar desclassificação e/ou punição da equipe. Todas as decisões da Organização são soberanas e inquestionáveis.</p>
+        <div class="rules-warning-box" style="background: var(--bg-card); border-left: 4px solid var(--red-primary); padding: 1.2rem; border-radius: 6px; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.8rem; color: var(--red-primary);"></i>
+            <p style="margin: 0; font-size: 0.9rem; line-height: 1.4;"><strong>IMPORTANTE:</strong> Ao se inscrever no campeonato o jogador está ciente e aceitou todas as regras do campeonato. O não cumprimento das regras estipuladas pode causar desclassificação e/ou punição da equipe. Todas as decisões da Organização são soberanas e inquestionáveis.</p>
         </div>
 
         <!-- LISTA DE ARTIGOS / SEÇÕES DE REGRAS -->
-        <div class="rules-articles-list">
+        <div class="rules-articles-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
 
             <!-- CAPÍTULO 1 -->
-            <div class="rule-article-card">
-                <div class="article-number">01</div>
+            <div class="rule-article-card sidebar-card">
                 <div class="article-content">
-                    <h3>Regras da Organização</h3>
-                    <ul class="rule-sublist">
-                        <li><strong>§ 1.1 —</strong> É obrigatório todos os jogadores participantes estarem presentes em nosso Discord para suporte, dúvidas e eventuais atualizações.</li>
-                        <li><strong>§ 1.2 —</strong> É de sua responsabilidade ler as regras. Partidas não devem ser iniciadas sem confirmação de um ADM (sujeito a penalidade).</li>
-                        <li><strong>§ 1.3 —</strong> As regras estão sujeitas a atualizações sem aviso prévio; fique atento.</li>
-                        <li><strong>§ 1.4 —</strong> Proibido jogar em duas contas simultaneamente.</li>
-                        <li><strong>§ 1.5 —</strong> As inscrições serão do dia 26/10 ao dia 30/10.</li>
-                        <li><strong>§ 1.6 —</strong> A taxa de inscrição será de R$ 5,00 por jogador, destinada a ONGs que atuam na conscientização, prevenção e suporte a mulheres com câncer de mama.</li>
-                        <li><strong>§ 1.7 —</strong> O torneio acontecerá no mês de novembro e a final será no domingo dia (29/11), sempre no período da tarde nos fins de semana.</li>
+                    <h3 style="color: var(--red-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;"><i class="fa-solid fa-book"></i> Capítulo 01 — Regras da Organização</h3>
+                    <ul class="rule-sublist" style="display: flex; flex-direction: column; gap: 0.6rem; padding-left: 1.2rem; margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                        <li><strong style="color: #fff;">§ 1.1 —</strong> É obrigatório todos os jogadores participantes estarem presentes em nosso Discord para suporte, dúvidas e eventuais atualizações.</li>
+                        <li><strong style="color: #fff;">§ 1.2 —</strong> É de sua responsabilidade ler as regras. Partidas não devem ser iniciadas sem confirmação de um ADM (sujeito a penalidade).</li>
+                        <li><strong style="color: #fff;">§ 1.3 —</strong> As regras estão sujeitas a atualizações sem aviso prévio; fique atento.</li>
+                        <li><strong style="color: #fff;">§ 1.4 —</strong> Proibido jogar em duas contas simultaneamente.</li>
+                        <li><strong style="color: #fff;">§ 1.5 —</strong> As inscrições serão do dia 26/10 ao dia 30/10.</li>
+                        <li><strong style="color: #fff;">§ 1.6 —</strong> A taxa de inscrição será de R$ 5,00 por jogador, destinada a ONGs que atuam na conscientização, prevenção e suporte a mulheres com câncer de mama.</li>
+                        <li><strong style="color: #fff;">§ 1.7 —</strong> O torneio acontecerá no mês de novembro e a final será no domingo dia (29/11), sempre no período da tarde nos fins de semana.</li>
                     </ul>
                 </div>
             </div>
 
             <!-- CAPÍTULO 2 -->
-            <div class="rule-article-card">
-                <div class="article-number">02</div>
+            <div class="rule-article-card sidebar-card">
                 <div class="article-content">
-                    <h3>Aos Participantes</h3>
-                    <ul class="rule-sublist">
-                        <li><strong>§ 2.1 —</strong> O campeonato é feito para os torcedores da RED Canids. Se você não torce ou não possui vínculo com a organização, não será permitida a sua participação.</li>
-                        <li><strong>§ 2.2 —</strong> Estar cadastrado no Forms de torneio com o Nick do LoL atualizado.</li>
-                        <li><strong>§ 2.3 —</strong> Estar atento ao Discord do campeonato para saber se sua inscrição foi aprovada.</li>
-                        <li><strong>§ 2.4 —</strong> Ao se inscreverem, vocês autorizam o uso de sua imagem.</li>
+                    <h3 style="color: var(--red-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;"><i class="fa-solid fa-users"></i> Capítulo 02 — Aos Participantes</h3>
+                    <ul class="rule-sublist" style="display: flex; flex-direction: column; gap: 0.6rem; padding-left: 1.2rem; margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                        <li><strong style="color: #fff;">§ 2.1 —</strong> O campeonato é feito para os torcedores da RED Canids. Se você não torce ou não possui vínculo com a organização, não será permitida a sua participação.</li>
+                        <li><strong style="color: #fff;">§ 2.2 —</strong> Estar cadastrado no Forms de torneio com o Nick do LoL atualizado.</li>
+                        <li><strong style="color: #fff;">§ 2.3 —</strong> Estar atento ao Discord do campeonato para saber se sua inscrição foi aprovada.</li>
+                        <li><strong style="color: #fff;">§ 2.4 —</strong> Ao se inscreverem, vocês autorizam o uso de sua imagem.</li>
                     </ul>
                 </div>
             </div>
 
             <!-- CAPÍTULO 3 -->
-            <div class="rule-article-card">
-                <div class="article-number">03</div>
+            <div class="rule-article-card sidebar-card">
                 <div class="article-content">
-                    <h3>Durante o Torneio</h3>
-                    <ul class="rule-sublist">
-                        <li><strong>§ 3.1 —</strong> Um site irá sortear os confrontos iniciais.</li>
-                        <li><strong>§ 3.2 —</strong> As vagas serão preenchidas com base na ordem de inscrição, com mínimo de 8 e máximo de 10 equipes.</li>
-                        <li><strong>§ 3.3 —</strong> As salas personalizadas serão organizadas pelos ADMs do torneio.</li>
-                        <li><strong>§ 3.4 —</strong> Não é permitido convidar jogadores que não estejam inscritos no forms (exceto reservas oficiais).</li>
-                        <li><strong>§ 3.5 —</strong> O tempo limite de atraso para qualquer jogador é de 10 minutos após a sala ser criada.</li>
-                        <li><strong>§ 3.6 —</strong> Não toleramos RACISMO, HOMOFOBIA e MACHISMO. Envie prints aos administradores; o infrator será sumariamente desclassificado.</li>
-                        <li><strong>§ 3.7 —</strong> A comunicação principal com a equipe será feita em grupo de WhatsApp com os capitães e avisos gerais no Discord.</li>
+                    <h3 style="color: var(--red-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;"><i class="fa-solid fa-gamepad"></i> Capítulo 03 — Durante o Torneio</h3>
+                    <ul class="rule-sublist" style="display: flex; flex-direction: column; gap: 0.6rem; padding-left: 1.2rem; margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                        <li><strong style="color: #fff;">§ 3.1 —</strong> Um site irá sortear os confrontos iniciais.</li>
+                        <li><strong style="color: #fff;">§ 3.2 —</strong> As vagas serão preenchidas com base na ordem de inscrição, com mínimo de 8 e máximo de 10 equipes.</li>
+                        <li><strong style="color: #fff;">§ 3.3 —</strong> As salas personalizadas serão organizadas pelos ADMs do torneio.</li>
+                        <li><strong style="color: #fff;">§ 3.4 —</strong> Não é permitido convidar jogadores que não estejam inscritos no forms (exceto reservas oficiais).</li>
+                        <li><strong style="color: #fff;">§ 3.5 —</strong> O tempo limite de atraso para qualquer jogador é de 10 minutos após a sala ser criada.</li>
+                        <li><strong style="color: #fff;">§ 3.6 —</strong> Não toleramos RACISMO, HOMOFOBIA e MACHISMO. Envie prints aos administradores; o infrator será sumariamente desclassificado.</li>
+                        <li><strong style="color: #fff;">§ 3.7 —</strong> A comunicação principal com a equipe será feita em grupo de WhatsApp com os capitães e avisos gerais no Discord.</li>
                     </ul>
                 </div>
             </div>
 
             <!-- CAPÍTULO 4 -->
-            <div class="rule-article-card">
-                <div class="article-number">04</div>
+            <div class="rule-article-card sidebar-card">
                 <div class="article-content">
-                    <h3>Configurações da Partida</h3>
-                    <ul class="rule-sublist">
-                        <li><strong>§ 4.1 —</strong> O formato do torneio (upper/lower bracket) será divulgado após o encerramento das inscrições.</li>
-                        <li><strong>§ 4.3 —</strong> Partidas disputadas em Summoner's Rift no Modo Torneio com adoção do <strong>Fearless Draft</strong>.</li>
-                        <li><strong>§ 4.4 —</strong> Pause permitido em caso de desconexão com tempo máximo de espera de até 10 minutos.</li>
-                        <li><strong>§ 4.5 —</strong> Problemas de instabilidade pessoal são de responsabilidade do jogador (salvo quedas gerais dos servidores da Riot).</li>
+                    <h3 style="color: var(--red-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;"><i class="fa-solid fa-sliders"></i> Capítulo 04 — Configurações da Partida</h3>
+                    <ul class="rule-sublist" style="display: flex; flex-direction: column; gap: 0.6rem; padding-left: 1.2rem; margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                        <li><strong style="color: #fff;">§ 4.1 —</strong> O formato do torneio (upper/lower bracket) será divulgado após o encerramento das inscrições.</li>
+                        <li><strong style="color: #fff;">§ 4.3 —</strong> Partidas disputadas em Summoner's Rift no Modo Torneio com adoção do <strong>Fearless Draft</strong>.</li>
+                        <li><strong style="color: #fff;">§ 4.4 —</strong> Pause permitido em caso de desconexão com tempo máximo de espera de até 10 minutos.</li>
+                        <li><strong style="color: #fff;">§ 4.5 —</strong> Problemas de instabilidade pessoal são de responsabilidade do jogador (salvo quedas gerais dos servidores da Riot).</li>
                     </ul>
                 </div>
             </div>
 
             <!-- CAPÍTULO 5 -->
-            <div class="rule-article-card">
-                <div class="article-number">05</div>
+            <div class="rule-article-card sidebar-card">
                 <div class="article-content">
-                    <h3>Resultados e Premiação</h3>
-                    <ul class="rule-sublist">
-                        <li><strong>§ 5.1 —</strong> O chaveamento atualizado será divulgado na tabela oficial após cada confronto.</li>
-                        <li><strong>§ 5.2 —</strong> Todo reporte de irregularidade será analisado pela moderação.</li>
-                        <li><strong>§ 6.1 —</strong> A equipe campeã ganhará uniformes RED Canids 2026 e o MVP ganhará um cartão de R$ 50,00 de RP.</li>
-                        <li><strong>§ 6.3 —</strong> O capitão deve contatar um ADM para acertar os detalhes de envio da premiação.</li>
+                    <h3 style="color: var(--red-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;"><i class="fa-solid fa-trophy"></i> Capítulo 05 — Resultados e Premiação</h3>
+                    <ul class="rule-sublist" style="display: flex; flex-direction: column; gap: 0.6rem; padding-left: 1.2rem; margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                        <li><strong style="color: #fff;">§ 5.1 —</strong> O chaveamento atualizado será divulgado na tabela oficial após cada confronto.</li>
+                        <li><strong style="color: #fff;">§ 5.2 —</strong> Todo reporte de irregularidade será analisado pela moderação.</li>
+                        <li><strong style="color: #fff;">§ 6.1 —</strong> A equipe campeã ganhará uniformes RED Canids 2026 e o MVP ganhará um cartão de R$ 50,00 de RP.</li>
+                        <li><strong style="color: #fff;">§ 6.3 —</strong> O capitão deve contatar um ADM para acertar os detalhes de envio da premiação.</li>
                     </ul>
                 </div>
             </div>
@@ -136,7 +129,7 @@
         </div>
 
         <!-- ASSINATURA DA ORGANIZAÇÃO -->
-        <div class="rules-signature">
+        <div class="rules-signature" style="text-align: center; margin-top: 2.5rem; font-size: 0.9rem; color: var(--text-muted);">
             <p>Assinado: <strong>Organização RED Canudos</strong></p>
         </div>
 

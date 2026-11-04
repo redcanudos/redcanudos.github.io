@@ -6,16 +6,50 @@
     <title>Times · RED CANUDOS</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+        .main-container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 2rem 2.5rem !important;
+            box-sizing: border-box;
+        }
+        .sidebar-card {
+            max-width: 100% !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+        .teams-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+            gap: 1.5rem !important;
+            margin-top: 1.5rem !important;
+            width: 100% !important;
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem !important;
+            }
+            .banner-hero {
+                padding: 1.5rem 1rem !important;
+            }
+            .banner-hero h1 {
+                font-size: 1.6rem !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
     <!-- NAVBAR PADRONIZADA -->
     <header class="navbar">
         <div class="nav-container">
-            <div class="logo-brand">
+            <a href="index.html" class="logo-brand">
                 <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
                 <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
-            </div>
+            </a>
             <nav class="nav-links">
                 <a href="index.html">Início</a>
                 <a href="times.html" class="active">Times</a>
@@ -23,6 +57,8 @@
                 <a href="partidas.html">Partidas</a>
                 <a href="tabela.html">Tabela</a>
                 <a href="estatisticas.html">Estatísticas</a>
+                <a href="noticias.html">Notícias</a>
+                <a href="hall.html">Hall of Canudos</a>
                 <a href="regras.html">Regras</a>
             </nav>
             <div class="menu-toggle" id="menuToggle">
@@ -40,13 +76,13 @@
             </div>
         </div>
 
-        <section class="sidebar-card" style="margin-bottom: 2rem;">
+        <section class="sidebar-card" style="margin-bottom: 2rem; padding: 2rem;">
             <div class="section-title-bar">
                 <h2><i class="fa-solid fa-shield-halved"></i> TIMES INSCRITOS</h2>
             </div>
 
-            <!-- GRID DE TIMES -->
-            <div id="gridTimes" class="admin-grid" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;">
+            <!-- GRID DE TIMES AMPLIADO -->
+            <div id="gridTimes" class="teams-grid">
                 <p class="loading-text">Carregando equipes inscritas...</p>
             </div>
         </section>
@@ -99,9 +135,13 @@
                     card.style.display = 'flex';
                     card.style.flexDirection = 'column';
                     card.style.alignItems = 'center';
+                    card.style.justifyContent = 'space-between';
                     card.style.textAlign = 'center';
                     card.style.textDecoration = 'none';
-                    card.style.padding = '2rem 1rem';
+                    card.style.padding = '1.8rem 1rem';
+                    card.style.background = 'var(--bg-card)';
+                    card.style.border = '1px solid var(--border-color)';
+                    card.style.borderRadius = '8px';
                     card.style.transition = 'transform 0.2s, border-color 0.2s';
 
                     card.onmouseover = () => { card.style.transform = 'translateY(-4px)'; card.style.borderColor = 'var(--red-primary)'; };
@@ -109,15 +149,17 @@
 
                     let logoHtml = '';
                     if (time.logoUrl && time.logoUrl.trim() !== '') {
-                        logoHtml = `<img src="${time.logoUrl}" alt="${nomeTime}" style="width: 75px; height: 75px; object-fit: cover; border-radius: 50%; border: 2px solid var(--red-primary); margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">`;
+                        logoHtml = `<img src="${time.logoUrl}" alt="${nomeTime}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 2px solid var(--red-primary); margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">`;
                     } else {
-                        logoHtml = `<div style="width: 75px; height: 75px; background: var(--bg-main); border: 2px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; color: var(--red-primary); margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${nomeTime.charAt(0)}</div>`;
+                        logoHtml = `<div style="width: 80px; height: 80px; background: var(--bg-main); border: 2px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: var(--red-primary); margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">${nomeTime.charAt(0)}</div>`;
                     }
 
                     card.innerHTML = `
-                        ${logoHtml}
-                        <h3 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.4rem;">${nomeTime} ${time.tag ? `[${time.tag}]` : ''}</h3>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Clique para ver o plantel</span>
+                        <div>
+                            ${logoHtml}
+                            <h3 style="color: #fff; font-size: 1.15rem; margin-bottom: 0.4rem;">${nomeTime} ${time.tag ? `[${time.tag}]` : ''}</h3>
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-top: 0.8rem;">Ver Plantel <i class="fa-solid fa-arrow-right"></i></span>
                     `;
                     container.appendChild(card);
                 });

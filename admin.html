@@ -8,20 +8,202 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- BIBLIOTECA DE OCR LOCAL -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+        .main-container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 2rem 2.5rem !important;
+            box-sizing: border-box;
+        }
+        .admin-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            max-width: 100% !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.7rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85srem;
+            transition: all 0.2s;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--red-primary);
+            color: #fff;
+            border-color: var(--red-primary);
+        }
+        .admin-form .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .admin-form label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .admin-form input, .admin-form select, .admin-form textarea {
+            width: 100%;
+            padding: 0.7rem;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .admin-form input:focus, .admin-form select:focus, .admin-form textarea:focus {
+            border-color: var(--red-primary);
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .btn-submit {
+            background: var(--red-primary);
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+        }
+        .login-card {
+            max-width: 400px !important;
+            width: 100% !important;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .login-logo {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 0.5rem;
+        }
+        .admin-news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+        .admin-news-item {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-tag {
+            font-size: 0.7rem;
+            color: var(--red-primary);
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .item-info h4 {
+            margin: 0.2rem 0 0 0;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-delete, .btn-view {
+            background: #232732;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+        .btn-delete:hover {
+            background: #ff5252;
+            border-color: #ff5252;
+        }
+        .ai-box {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 1.2rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .btn-ai {
+            background: #31313c;
+            color: #5383e8;
+            border: 1px solid #5383e855;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem !important;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
 </head>
 <body>
 
     <!-- NAVBAR -->
     <header class="navbar">
         <div class="nav-container">
-            <div class="logo-brand">
+            <a href="index.html" class="logo-brand">
                 <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
-                <span class="brand-name"><span class="red-text">RED</span> CANUDOS <small class="adm-badge">ADM</small></span>
-            </div>
+                <span class="brand-name"><span class="red-text">RED</span> CANUDOS <small style="color:var(--red-primary);">ADM</small></span>
+            </a>
             <nav class="nav-links">
                 <a href="index.html">Ver Site Principal</a>
                 <a href="estatisticas.html" target="_blank">Estatísticas</a>
-                <button id="btnLogout" class="btn-logout" style="display: none;"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+                <button id="btnLogout" class="btn-delete" style="display: none; background: transparent; border: 1px solid var(--border-color);"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
             </nav>
         </div>
     </header>
@@ -34,7 +216,7 @@
                 <div class="login-header">
                     <img src="Logo Canudos.png" alt="Logo" class="login-logo">
                     <h2>Área Restrita</h2>
-                    <p>Digite as credenciais de administrador para continuar.</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Digite as credenciais de administrador para continuar.</p>
                 </div>
                 <form id="formLogin" class="admin-form">
                     <div class="form-group">
@@ -48,7 +230,7 @@
                     <button type="submit" id="btnLogin" class="btn-submit">
                         <i class="fa-solid fa-lock"></i> Entrar no Painel
                     </button>
-                    <p id="loginError" class="form-status" style="color: #ff5252;"></p>
+                    <p id="loginError" class="form-status" style="color: #ff5252; margin-top: 0.8rem; font-size: 0.85rem; text-align: center;"></p>
                 </form>
             </div>
         </div>
@@ -67,7 +249,7 @@
                 <div class="admin-grid">
                     <section class="admin-card">
                         <h3><i class="fa-solid fa-pen-to-square"></i> Publicar Nova Notícia</h3>
-                        <form id="formNoticia" class="admin-form">
+                        <form id="formNoticia" class="admin-form" style="margin-top: 1rem;">
                             <div class="form-group">
                                 <label for="titulo">Título da Notícia</label>
                                 <input type="text" id="titulo" placeholder="Ex: Inscrições abertas para o torneio!" required>
@@ -97,7 +279,7 @@
                                 <textarea id="conteudo" rows="5" placeholder="Texto da notícia..." required></textarea>
                             </div>
                             <button type="submit" id="btnSalvar" class="btn-submit"><i class="fa-solid fa-paper-plane"></i> Publicar Notícia</button>
-                            <p id="msgStatus" class="form-status"></p>
+                            <p id="msgStatus" class="form-status" style="margin-top: 0.8rem; font-size: 0.85rem; font-weight: 700;"></p>
                         </form>
                     </section>
                     <section class="admin-card">
@@ -158,7 +340,7 @@
                             </div>
 
                             <button type="submit" id="btnSalvarTime" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Salvar Time e Plantel</button>
-                            <p id="msgTimeStatus" class="form-status" style="margin-top: 0.5rem;"></p>
+                            <p id="msgTimeStatus" class="form-status" style="margin-top: 0.8rem; font-size: 0.85rem; font-weight: 700;"></p>
                         </form>
                     </section>
 
@@ -177,7 +359,7 @@
                     
                     <section class="admin-card" style="grid-column: span 2;">
                         <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Prints (Fim de Jogo + Draft)</h3>
-                        <form id="formPartida" class="admin-form">
+                        <form id="formPartida" class="admin-form" style="margin-top: 1rem;">
                             
                             <!-- CAIXA DE UPLOADS DOS PRINTS -->
                             <div class="ai-box">
@@ -261,7 +443,7 @@
                             </div>
 
                             <button type="submit" id="btnSalvarPartida" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Confirmar e Salvar no Site Principal</button>
-                            <p id="msgPartidaStatus" class="form-status"></p>
+                            <p id="msgPartidaStatus" class="form-status" style="margin-top: 0.8rem; font-size: 0.85rem; font-weight: 700;"></p>
                         </form>
                     </section>
 
@@ -341,28 +523,26 @@
         document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
         const convertBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                // Reduz a largura máxima para 300px (ideal para avatares/logos e evita estourar o 1MB do Firestore)
-                const MAX_WIDTH = 300; 
-                const scaleSize = MAX_WIDTH / img.width;
-                canvas.width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
-                canvas.height = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                // Qualidade comprimida em 70% para ficar leve
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
-            };
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 300; 
+                        const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+                        canvas.height = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    };
+                };
+                reader.onerror = (error) => reject(error);
+            });
         };
-        reader.onerror = (error) => reject(error);
-    });
-};
 
         // ADICIONAR LINHA DE JOGADOR NO CADASTRO DE TIME
         function adicionarLinhaJogadorTime(nick = '', funcao = '', opgg = '', fotoUrl = '') {
@@ -812,13 +992,13 @@
                             <h4>${d.homeTeam} ${d.homeScore} x ${d.awayScore} ${d.awayTeam}</h4>
                         </div>
                         <div class="item-actions">
-                            <button class="btn-delete-match" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-delete" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     `;
                     list.appendChild(item);
                 });
 
-                list.querySelectorAll('.btn-delete-match').forEach(btn => {
+                list.querySelectorAll('.btn-delete').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const id = e.currentTarget.getAttribute('data-id');
                         if (confirm("Deseja apagar esta partida do histórico?")) {

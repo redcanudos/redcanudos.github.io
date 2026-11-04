@@ -7,6 +7,20 @@
     <link rel="stylesheet" href="style.css">
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilo customizado para os grupos ocuparem 2 por linha de forma elegante */
+        .groups-home-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        @media (max-width: 900px) {
+            .groups-home-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -18,15 +32,16 @@
                 <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
             </div>
             <nav class="nav-links">
-            <a href="index.html" class="active">Início</a>
-            <a href="times.html">Times</a>
-            <a href="jogadores.html">Jogadores</a>
-            <a href="partidas.html">Partidas</a>
-            <a href="tabela.html">Tabela</a>
-            <a href="estatisticas.html">Estatísticas</a>
-            <a href="regras.html">Regras</a>
-            <a href="hall.html">Hall of Canudos</a>
-</nav>
+                <a href="index.html" class="active">Início</a>
+                <a href="times.html">Times</a>
+                <a href="jogadores.html">Jogadores</a>
+                <a href="partidas.html">Partidas</a>
+                <a href="tabela.html">Tabela</a>
+                <a href="estatisticas.html">Estatísticas</a>
+                <a href="noticia.html">Notícias</a>
+                <a href="hall.html">Hall of Canudos</a>
+                <a href="regras.html">Regras</a>
+            </nav>
             <div class="menu-toggle" id="menuToggle">
                 <i class="fa-solid fa-bars"></i>
             </div>
@@ -37,66 +52,40 @@
     <main class="main-container" id="inicio">
 
         <!-- BANNER DE DESTAQUE SUPERIOR (HERO) -->
-        <div class="banner-hero">
+        <div class="banner-hero" style="padding: 2rem 1rem; margin-bottom: 2rem; text-align: center;">
             <div class="banner-content">
-                <img src="Logo Canudos.png" alt="RED Canudos Emblem" class="hero-logo">
-                <h1>RED CANUDOS</h1>
-                <p class="banner-subtitle">O TORNEIO DA MATILHA · 2026</p>
+                <img src="Logo Canudos.png" alt="RED Canudos Emblem" class="hero-logo" style="width: 140px; height: 140px; object-fit: contain; margin-bottom: 0.5rem; filter: drop-shadow(0 0 15px rgba(229, 9, 20, 0.6));">
+                <h1 style="font-size: 2.2rem; letter-spacing: 2px; margin-bottom: 0.2rem;">RED CANUDOS</h1>
+                <p class="banner-subtitle" style="font-size: 0.95rem; letter-spacing: 1px;">O TORNEIO DA MATILHA · 2026</p>
             </div>
         </div>
 
-        <!-- LAYOUT DUAS COLUNAS (ESTILO CBLOW) -->
-        <div class="dashboard-grid">
+        <!-- SEÇÕES PRINCIPAIS OCUPANDO O ESPAÇO DA TELA -->
+        <div style="display: flex; flex-direction: column; gap: 2.5rem;">
 
-            <!-- COLUNA DA ESQUERDA: ÚLTIMOS RESULTADOS -->
-            <section class="results-section" id="partidas">
+            <!-- BLOCO 1: CLASSIFICAÇÃO DOS GRUPOS (2 POR LINHA: A/B E C/D) -->
+            <section class="sidebar-card" style="padding: 2rem;">
                 <div class="section-title-bar">
-                    <h2>ÚLTIMOS RESULTADOS</h2>
-                    <a href="partidas.html" class="ver-mais">Ver mais</a>
+                    <h2><i class="fa-solid fa-ranking-star" style="color: var(--red-primary);"></i> CLASSIFICAÇÃO DA FASE DE GRUPOS</h2>
+                    <a href="tabela.html" class="ver-mais">Ver tabela completa</a>
                 </div>
-
-                <div class="matches-list">
-                    <p class="loading-text">Carregando partidas em tempo real...</p>
+                
+                <div id="homeGruposList" class="groups-home-grid">
+                    <p class="loading-text">Carregando grupos...</p>
                 </div>
             </section>
 
-            <!-- COLUNA DA DIREITA: NOTÍCIAS (FIREBASE) + CLASSIFICAÇÃO -->
-            <aside class="sidebar-section">
-
-                <!-- BLOCO NOTÍCIAS CARREGADAS DO FIREBASE -->
-                <div class="sidebar-card">
-                    <div class="section-title-bar">
-                        <h2>NOTÍCIAS</h2>
-                        <a href="noticia.html" class="ver-mais">Ver todas</a>
-                    </div>
-                    
-                    <div class="news-list" id="homeNewsList">
-                        <p class="loading-text">Carregando notícias...</p>
-                    </div>
+            <!-- BLOCO 2: FEED DE NOTÍCIAS -->
+            <section class="sidebar-card" style="padding: 2rem;">
+                <div class="section-title-bar">
+                    <h2><i class="fa-solid fa-newspaper" style="color: var(--red-primary);"></i> ÚLTIMAS NOTÍCIAS & COMUNICADOS</h2>
+                    <a href="noticias.html" class="ver-mais">Ver todas</a>
                 </div>
-
-                <!-- BLOCO CLASSIFICAÇÃO RESUMIDA -->
-                <div class="sidebar-card margin-top" id="tabela">
-                    <div class="section-title-bar">
-                        <h2>CLASSIFICAÇÃO</h2>
-                        <a href="tabela.html" class="ver-mais">Ver mais</a>
-                    </div>
-
-                    <table class="mini-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Time</th>
-                                <th class="text-right">V-D</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="3" class="loading-text">Carregando classificação...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-            </aside>
+                
+                <div class="news-grid-home" id="homeNewsList">
+    <p class="loading-text">Carregando notícias...</p>
+</div>
+            </section>
 
         </div>
 
@@ -107,10 +96,10 @@
         <p>RED CANUDOS © 2026 · O TORNEIO DA MATILHA</p>
     </footer>
 
-    <!-- SCRIPT DO MENU MOBILE E COMPORTAMENTOS GERAIS -->
+    <!-- SCRIPT DO MENU MOBILE -->
     <script src="script.js"></script>
 
-    <!-- INTEGRACÃO FIREBASE (RESULTADOS, TABELA E NOTÍCIAS EM TEMPO REAL) -->
+    <!-- INTEGRAÇÃO FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -128,7 +117,14 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 1. CARREGAR NOTÍCIAS
+        const estruturaGrupos = {
+            "GRUPO A": ["RED Foxes", "Supermercados Guanabara", "Trabalhadores Mineiros 7x0"],
+            "GRUPO B": ["Red Flags", "Amantes da Nissinha", "Time do Corradini"],
+            "GRUPO C": ["Old Canids", "Voce merece isso Acchetta", "Immortal"],
+            "GRUPO D": ["Cunil", "Vitingadores", "Capangas do Marechal"]
+        };
+
+        // 1. CARREGAR NOTÍCIAS NA HOME
         async function carregarNoticiasHome() {
             const container = document.getElementById('homeNewsList');
             try {
@@ -147,12 +143,12 @@
 
                     const newsLink = document.createElement('a');
                     newsLink.href = `noticia.html?id=${id}`;
-                    newsLink.className = 'news-item';
+                    newsLink.className = 'news-card-item';
                     newsLink.innerHTML = `
-                        <div class="news-thumb"><i class="fa-solid fa-newspaper"></i></div>
-                        <div class="news-info">
-                            <span class="news-tag">${data.categoria || 'NOTÍCIA'}</span>
-                            <h4>${data.titulo}</h4>
+                        <div class="news-card-thumb"><i class="fa-solid fa-newspaper"></i></div>
+                        <div class="news-card-info">
+                            <span class="news-card-tag">${data.categoria || 'NOTÍCIA'}</span>
+                            <h4 class="news-card-title">${data.titulo}</h4>
                         </div>
                     `;
                     container.appendChild(newsLink);
@@ -162,90 +158,92 @@
             }
         }
 
-        // 2. CARREGAR ÚLTIMOS RESULTADOS DAS PARTIDAS COM LINK PARA DETALHES
-        async function carregarPartidasHome() {
-            const container = document.querySelector('.matches-list');
+        // 2. CARREGAR GRUPOS EM 2 POR LINHA NA HOME
+        async function carregarGruposHome() {
+            const container = document.getElementById('homeGruposList');
             if (!container) return;
 
             try {
-                const q = query(collection(db, "partidas"), orderBy("createdAt", "desc"), limit(5));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    container.innerHTML = '<p class="empty-text">Nenhuma partida registrada ainda.</p>';
-                    return;
-                }
+                const snap = await getDocs(collection(db, "tabela"));
+                const dadosBanco = {};
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const nomeKey = (d.nome || docSnap.id).trim();
+                    dadosBanco[nomeKey.toLowerCase()] = d;
+                });
 
                 container.innerHTML = '';
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const id = docSnap.id; // Pega o ID da partida cadastrada
 
-                    const matchRow = document.createElement('div');
-                    matchRow.className = 'match-row';
-                    matchRow.innerHTML = `
-                        <span class="match-date">${data.data || ''}</span>
-                        <div class="team team-home">
-                            <span class="team-name">${data.homeTeam}</span>
-                            <div class="team-icon">${data.homeTeam ? data.homeTeam.charAt(0) : 'T'}</div>
+                Object.keys(estruturaGrupos).forEach(nomeGrupo => {
+                    const timesDoGrupo = estruturaGrupos[nomeGrupo];
+                    
+                    let listaTimeObjs = timesDoGrupo.map(nomeTime => {
+                        const chave = nomeTime.toLowerCase().trim();
+                        const b = dadosBanco[chave] || {};
+                        return {
+                            nome: nomeTime,
+                            vitorias: b.vitorias || 0,
+                            derrotas: b.derrotas || 0,
+                            pontos: b.pontos || 0,
+                            logoUrl: b.logoUrl || ''
+                        };
+                    });
+
+                    listaTimeObjs.sort((a, b) => {
+                        if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+                        return b.vitorias - a.vitorias;
+                    });
+
+                    let linhasHtml = '';
+                    listaTimeObjs.forEach((t, index) => {
+                        const isTop2 = index < 2;
+                        linhasHtml += `
+                            <tr style="${isTop2 ? 'color: #00e676; font-weight: bold;' : ''}">
+                                <td style="display:flex; align-items:center; gap:0.6rem; padding: 0.6rem 0.4rem;">
+                                    ${t.logoUrl ? `<img src="${t.logoUrl}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">` : `<div style="width:22px;height:22px;border-radius:50%;background:#232732;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--red-primary);font-weight:bold;">${t.nome.charAt(0)}</div>`}
+                                    <span style="font-size:0.9rem;">${t.nome}</span>
+                                </td>
+                                <td class="text-center" style="font-size:0.85rem;">${t.vitorias}V-${t.derrotas}D</td>
+                                <td class="text-right" style="font-weight:bold; color:var(--red-primary); font-size:0.9rem;">${t.pontos}</td>
+                            </tr>
+                        `;
+                    });
+
+                    const cardGrupo = document.createElement('div');
+                    cardGrupo.style.background = 'var(--bg-main)';
+                    cardGrupo.style.border = '1px solid var(--border-color)';
+                    cardGrupo.style.borderRadius = '8px';
+                    cardGrupo.style.padding = '1.2rem';
+
+                    cardGrupo.innerHTML = `
+                        <div style="font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 0.8rem; border-bottom: 2px solid var(--red-primary); padding-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span>${nomeGrupo}</span>
+                            <span style="font-size:0.7rem; color:var(--text-muted); background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 4px;">Top 2 Avançam</span>
                         </div>
-                        <div class="match-score">${data.homeScore} – ${data.awayScore}</div>
-                        <div class="team team-away">
-                            <div class="team-icon">${data.awayTeam ? data.awayTeam.charAt(0) : 'T'}</div>
-                            <span class="team-name">${data.awayTeam}</span>
-                        </div>
-                        <a href="detalhes-partida.html?id=${id}" class="btn-details">VER DETALHES <i class="fa-solid fa-arrow-right"></i></a>
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="font-size:0.75rem; color:var(--text-muted); text-align: left;">
+                                    <th style="padding-bottom: 0.4rem;">Equipe</th>
+                                    <th class="text-center" style="padding-bottom: 0.4rem;">Campanha</th>
+                                    <th class="text-right" style="padding-bottom: 0.4rem;">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${linhasHtml}
+                            </tbody>
+                        </table>
                     `;
-                    container.appendChild(matchRow);
+                    container.appendChild(cardGrupo);
                 });
+
             } catch (error) {
-                console.error("Erro ao carregar partidas:", error);
-            }
-        }
-
-        // 3. CARREGAR TABELA DE CLASSIFICAÇÃO EM TEMPO REAL
-        async function carregarTabelaHome() {
-            const tabelaBody = document.querySelector('.mini-table tbody');
-            if (!tabelaBody) return;
-
-            try {
-                const q = query(collection(db, "tabela"), orderBy("pontos", "desc"));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    tabelaBody.innerHTML = '<tr><td colspan="3" class="empty-text">Nenhum time na tabela.</td></tr>';
-                    return;
-                }
-
-                tabelaBody.innerHTML = '';
-                let pos = 1;
-
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="pos">${pos}</td>
-                        <td>
-                            <div class="mini-team">
-                                <div class="team-icon-sm">${data.nome ? data.nome.charAt(0) : 'T'}</div>
-                                <span>${data.nome}</span>
-                            </div>
-                        </td>
-                        <td class="text-right bold">${data.vitorias || 0}-${data.derrotas || 0}</td>
-                    `;
-                    tabelaBody.appendChild(tr);
-                    pos++;
-                });
-            } catch (error) {
-                console.error("Erro ao carregar tabela:", error);
+                console.error("Erro ao carregar grupos na home:", error);
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             carregarNoticiasHome();
-            carregarPartidasHome();
-            carregarTabelaHome();
+            carregarGruposHome();
         });
     </script>
 </body>

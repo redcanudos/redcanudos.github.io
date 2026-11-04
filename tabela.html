@@ -3,26 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabela de Classificação · RED CANUDOS</title>
+    <title>Tabela de Grupos · RED CANUDOS</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .tabla-classificacao {
-            width: 100%;
-            border-collapse: collapse;
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
-        .tabla-classificacao th, 
-        .tabla-classificacao td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
+        .group-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem;
         }
-        .tabla-classificacao th.col-center, 
-        .tabla-classificacao td.col-center {
-            text-align: center !important;
+        .group-header {
+            background: rgba(229,9,20,0.1);
+            border-left: 4px solid var(--red-primary);
+            padding: 0.6rem 1rem;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .tabla-classificacao th.col-left, 
-        .tabla-classificacao td.col-left {
-            text-align: left !important;
+        .classified-row {
+            color: #00e676;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -42,8 +53,9 @@
                 <a href="partidas.html">Partidas</a>
                 <a href="tabela.html" class="active">Tabela</a>
                 <a href="estatisticas.html">Estatísticas</a>
+                <a href="noticia.html">Notícias</a>
+                <a href="hall.html"> Hall of Canudos</a>
                 <a href="regras.html">Regras</a>
-                <a href="hall.html">Hall of Canudos</a>
             </nav>
             <div class="menu-toggle" id="menuToggle">
                 <i class="fa-solid fa-bars"></i>
@@ -55,32 +67,19 @@
         
         <div class="banner-hero">
             <div class="banner-content">
-                <h1>TABELA DE CLASSIFICAÇÃO</h1>
-                <p class="banner-subtitle">RED CANUDOS · TEMPORADA REGULAR 2026</p>
+                <h1>FASE DE GRUPOS</h1>
+                <p class="banner-subtitle">RED CANUDOS · MD3 (OS 2 PRIMEIRAOS DE CADA GRUPO AVANÇAM PARA AS QUARTAS)</p>
             </div>
         </div>
 
-        <section class="sidebar-card" style="margin-bottom: 2rem;">
+        <section class="sidebar-card" style="margin-bottom: 2.5rem;">
             <div class="section-title-bar">
-                <h2><i class="fa-solid fa-list-ol"></i> CLASSIFICAÇÃO DOS TIMES</h2>
+                <h2><i class="fa-solid fa-ranking-star"></i> CLASSIFICAÇÃO OFICIAL DOS GRUPOS</h2>
             </div>
 
-            <div style="overflow-x: auto;">
-                <table class="mini-table tabla-classificacao">
-                    <thead>
-                        <tr>
-                            <th class="col-center" style="width: 50px;">#</th>
-                            <th class="col-left">Equipe</th>
-                            <th class="col-center">Vitórias (V)</th>
-                            <th class="col-center">Derrotas (D)</th>
-                            <th class="col-center">Aproveitamento</th>
-                            <th class="col-center">Pontos (PTS)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaClassificacaoBody">
-                        <tr><td colspan="6" class="loading-text">Carregando classificação...</td></tr>
-                    </tbody>
-                </table>
+            <!-- GRID DOS 4 GRUPOS FIXOS -->
+            <div class="groups-grid" id="containerGrupos">
+                <p class="loading-text">Carregando classificação dos grupos...</p>
             </div>
         </section>
 
@@ -92,7 +91,7 @@
 
     <script src="script.js"></script>
 
-    <!-- INTEGRAÇÃO FIREBASE -->
+    <!-- FIREBASE INTEGRATION -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -110,51 +109,92 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // MAPA FIXO DOS GRUPOS DO CAMPEONATO
+        const estruturaGrupos = {
+            "GRUPO A": ["RED Foxes", "Supermercados Guanabara", "Trabalhadores Mineiros 7x0"],
+            "GRUPO B": ["Red Flags", "Amantes da Nissinha", "Time do Corradini"],
+            "GRUPO C": ["Old Canids", "Voce merece isso Acchetta", "Immortal"],
+            "GRUPO D": ["Cunil", "Vitingadores", "Capangas do Marechal"]
+        };
+
         async function carregarTabelaOficial() {
-            const body = document.getElementById('tabelaClassificacaoBody');
+            const container = document.getElementById('containerGrupos');
             try {
                 const snap = await getDocs(collection(db, "tabela"));
-                if (snap.empty) {
-                    body.innerHTML = '<tr><td colspan="6" class="empty-text">Nenhum time registrado na tabela ainda.</td></tr>';
-                    return;
-                }
+                
+                // Mapeia dados dos times cadastrados no banco
+                const dadosBanco = {};
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const nomeKey = (d.nome || docSnap.id).trim();
+                    dadosBanco[nomeKey.toLowerCase()] = d;
+                });
 
-                let times = [];
-                snap.forEach(docSnap => times.push(docSnap.data()));
+                container.innerHTML = '';
 
-                // Ordenação: Pontos > Vitórias
-                times.sort((a, b) => (b.pontos || 0) - (a.pontos || 0) || (b.vitorias || 0) - (a.vitorias || 0));
+                Object.keys(estruturaGrupos).forEach(nomeGrupo => {
+                    const timesDoGrupo = estruturaGrupos[nomeGrupo];
+                    
+                    // Monta a lista de objetos com dados reais do banco (ou vazios para não cadastrados)
+                    let listaTimeObjs = timesDoGrupo.map(nomeTime => {
+                        const chave = nomeTime.toLowerCase().trim();
+                        const b = dadosBanco[chave] || {};
+                        return {
+                            nome: nomeTime,
+                            vitorias: b.vitorias || 0,
+                            derrotas: b.derrotas || 0,
+                            pontos: b.pontos || 0,
+                            logoUrl: b.logoUrl || ''
+                        };
+                    });
 
-                body.innerHTML = '';
-                let pos = 1;
+                    // Ordena por Pontos -> Vitórias -> Menos Derrotas
+                    listaTimeObjs.sort((a, b) => {
+                        if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+                        return b.vitorias - a.vitorias;
+                    });
 
-                times.forEach(t => {
-                    const v = t.vitorias || 0;
-                    const d = t.derrotas || 0;
-                    const totalJogos = v + d;
-                    const winrate = totalJogos > 0 ? ((v / totalJogos) * 100).toFixed(0) + '%' : '0%';
+                    let linhasHtml = '';
+                    listaTimeObjs.forEach((t, index) => {
+                        const isTop2 = index < 2; // Destaque verde para quem está no Top 2
+                        linhasHtml += `
+                            <tr style="${isTop2 ? 'color: #00e676; font-weight: bold;' : ''}">
+                                <td style="display:flex; align-items:center; gap:0.5rem; padding: 0.6rem 0.4rem;">
+                                    ${t.logoUrl ? `<img src="${t.logoUrl}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">` : `<div style="width:22px;height:22px;border-radius:50%;background:#232732;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--red-primary);font-weight:bold;">${t.nome.charAt(0)}</div>`}
+                                    <span style="font-size:0.85rem;">${t.nome}</span>
+                                </td>
+                                <td class="text-center" style="font-size:0.8rem;">${t.vitorias}V - ${t.derrotas}D</td>
+                                <td class="text-right" style="font-weight:bold; color:var(--red-primary); font-size:0.85rem;">${t.pontos}</td>
+                            </tr>
+                        `;
+                    });
 
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="col-center pos">${pos}</td>
-                        <td class="col-left">
-                            <div class="mini-team" style="display:flex; align-items:center; gap:0.6rem;">
-                                <div class="team-icon-sm" style="width:28px; height:28px; background:var(--bg-main); border:1px solid var(--border-color); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--red-primary); font-size:0.8rem;">${t.nome ? t.nome.charAt(0) : 'T'}</div>
-                                <strong style="color:#fff; font-size:0.95rem;">${t.nome}</strong>
-                            </div>
-                        </td>
-                        <td class="col-center" style="font-weight:700; color:#00e676;">${v}</td>
-                        <td class="col-center" style="font-weight:700; color:#ff5252;">${d}</td>
-                        <td class="col-center" style="color:var(--text-muted); font-weight:700;">${winrate}</td>
-                        <td class="col-center bold" style="color:var(--red-primary); font-size:1.1rem; font-weight:900;">${t.pontos || (v * 3)}</td>
+                    const cardGrupo = document.createElement('div');
+                    cardGrupo.className = 'group-card';
+                    cardGrupo.innerHTML = `
+                        <div class="group-header">
+                            <span>${nomeGrupo}</span>
+                            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Top 2 Avançam</span>
+                        </div>
+                        <table class="mini-table" style="width:100%;">
+                            <thead>
+                                <tr style="font-size:0.75rem; color:var(--text-muted);">
+                                    <th>Equipe</th>
+                                    <th class="text-center">Campanha</th>
+                                    <th class="text-right">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${linhasHtml}
+                            </tbody>
+                        </table>
                     `;
-                    body.appendChild(tr);
-                    pos++;
+                    container.appendChild(cardGrupo);
                 });
 
             } catch (err) {
-                console.error("Erro ao carregar tabela:", err);
-                body.innerHTML = '<tr><td colspan="6" class="empty-text">Erro ao carregar tabela de classificação.</td></tr>';
+                console.error("Erro ao carregar grupos:", err);
+                container.innerHTML = '<p class="empty-text">Erro ao carregar a tabela dos grupos.</p>';
             }
         }
 

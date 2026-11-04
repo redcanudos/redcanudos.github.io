@@ -76,7 +76,7 @@
             </div>
             <nav class="nav-links">
                 <a href="index.html">Início</a>
-                <a href="noticias.html" class="active">Notícias</a>
+                <a href="noticia.html" class="active">Notícias</a>
                 <a href="times.html">Times</a>
                 <a href="jogadores.html">Jogadores</a>
                 <a href="partidas.html">Partidas</a>
@@ -199,7 +199,7 @@
             container.innerHTML = '';
             filtradas.forEach(n => {
                 const card = document.createElement('a');
-                card.href = `noticia.html?id=${n.id}`;
+                card.href = `detalhes-noticia.html?id=${n.id}`;
                 card.className = 'news-card-item';
 
                 let thumbHtml = '';

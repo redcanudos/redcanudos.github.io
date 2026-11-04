@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notícia · RED CANUDOS</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+        .main-container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 2rem 2.5rem !important;
+            box-sizing: border-box;
+        }
+        .article-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2.5rem;
+            max-width: 900px !important;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        .article-tag {
+            display: inline-block;
+            background: rgba(229, 9, 20, 0.1);
+            color: var(--red-primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        .article-title {
+            font-size: 2.2rem;
+            color: #fff;
+            margin-bottom: 0.8rem;
+            line-height: 1.2;
+            font-weight: 900;
+        }
+        .article-meta {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 1.5rem;
+        }
+        .article-banner {
+            width: 100%;
+            max-height: 450px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+        .article-body {
+            color: #e2e8f0;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+        .article-body p {
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem !important;
+            }
+            .article-card {
+                padding: 1.5rem;
+            }
+            .article-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR PADRONIZADA -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-brand">
+                <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
+                <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
+            </a>
+            <nav class="nav-links">
+                <a href="index.html">Início</a>
+                <a href="times.html">Times</a>
+                <a href="jogadores.html">Jogadores</a>
+                <a href="partidas.html">Partidas</a>
+                <a href="tabela.html">Tabela</a>
+                <a href="estatisticas.html">Estatísticas</a>
+                <a href="noticia.html" class="active">Notícias</a>
+                <a href="hall.html">Hall of Canudos</a>
+                <a href="regras.html">Regras</a>
+            </nav>
+            <div class="menu-toggle" id="menuToggle">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        
+        <div style="max-width: 900px; margin: 0 auto 1.5rem auto;">
+            <a href="noticia.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 700;"><i class="fa-solid fa-arrow-left"></i> Voltar para Notícias</a>
+        </div>
+
+        <article class="article-card">
+            <div id="articleContainer">
+                <p class="loading-text">Carregando notícia...</p>
+            </div>
+        </article>
+
+    </main>
+
+    <footer class="footer">
+        <p>RED CANUDOS © 2026 · O TORNEIO DA MATILHA</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+    <!-- FIREBASE INTEGRATION -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3g6QE7YBg0vEAYoCoZa4lI3hc2_C-J4Y",
+            authDomain: "canudos-200c7.firebaseapp.com",
+            projectId: "canudos-200c7",
+            storageBucket: "canudos-200c7.firebasestorage.app",
+            messagingSenderId: "1055281066343",
+            appId: "1:1055281066343:web:80afb45157dacbe503bfc2",
+            measurementId: "G-JEP4G8QFHE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const newsId = urlParams.get('id');
+
+        async function carregarNoticia() {
+            const container = document.getElementById('articleContainer');
+
+            if (!newsId) {
+                container.innerHTML = '<p class="empty-text">Notícia não encontrada!</p>';
+                return;
+            }
+
+            try {
+                const docRef = doc(db, "noticias", newsId);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists()) {
+                    container.innerHTML = '<p class="empty-text">A notícia solicitada não existe ou foi removida.</p>';
+                    return;
+                }
+
+                const data = docSnap.data();
+
+                let bannerHtml = '';
+                if (data.imagemUrl && data.imagemUrl.trim() !== '') {
+                    bannerHtml = `<img src="${data.imagemUrl}" alt="${data.titulo}" class="article-banner">`;
+                }
+
+                container.innerHTML = `
+                    <span class="article-tag">${data.categoria || 'NOTÍCIA'}</span>
+                    <h1 class="article-title">${data.titulo}</h1>
+                    <div class="article-meta">
+                        <span><i class="fa-regular fa-calendar"></i> Publicado em ${data.data || 'Recente'}</span>
+                        <span><i class="fa-solid fa-user-shield"></i> Organização RED Canudos</span>
+                    </div>
+                    ${bannerHtml}
+                    <div class="article-body">
+                        ${data.conteudo}
+                    </div>
+                `;
+
+            } catch (err) {
+                console.error("Erro ao carregar notícia:", err);
+                container.innerHTML = '<p class="empty-text">Erro ao carregar o conteúdo da notícia.</p>';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', carregarNoticia);
+    </script>
+</body>
+</html>

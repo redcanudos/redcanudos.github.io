@@ -9,23 +9,27 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <header class="navbar">
+   <header class="navbar">
         <div class="nav-container">
-            <div class="logo-brand">
+            <a href="index.html" class="logo-brand">
                 <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
                 <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
-            </div>
+            </a>
             <nav class="nav-links">
-            <a href="index.html">Início</a>
-            <a href="times.html">Times</a>
-            <a href="jogadores.html">Jogadores</a>
-            <a href="partidas.html">Partidas</a>
-            <a href="tabela.html">Tabela</a>
-            <a href="estatisticas.html" class="active">Estatísticas</a>
-            <a href="regras.html">Regras</a>
-            <a href="hall.html">Hall of Canudos</a>
+                <a href="index.html">Início</a>
+                <a href="times.html">Times</a>
+                <a href="jogadores.html">Jogadores</a>
+                <a href="partidas.html">Partidas</a>
+                <a href="tabela.html">Tabela</a>
+                <a href="estatisticas.html" class="active">Estatísticas</a>
+                <a href="noticias.html">Notícias</a>
+                <a href="hall.html">Hall of Canudos</a>
+                <a href="regras.html">Regras</a>
             </nav>
+            <!-- ADICIONE ESTE BOTÃO CASO ELE ESTEJA FALTANDO -->
+            <div class="menu-toggle" id="menuToggle">
+                <i class="fa-solid fa-bars"></i>
+            </div>
         </div>
     </header>
 
@@ -310,5 +314,6 @@
 
         window.addEventListener('DOMContentLoaded', carregarDadosCompletos);
     </script>
+    <script src="script.js"></script>
 </body>
 </html>

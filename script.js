@@ -20,16 +20,6 @@ if (menuToggle) {
     });
 }
 
-<script>
-    if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((reg) => console.log('Service Worker registrado:', reg.scope))
-            .catch((err) => console.log('Erro:', err));
-    })
-}
-</script>
-
 // Registo automático do Service Worker para PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

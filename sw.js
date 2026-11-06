@@ -1,4 +1,4 @@
-const CACHE_NAME = 'red-canudos-v3';
+const CACHE_NAME = 'red-canudos-v4';
 const assetsToCache = [
     './',
     './index.html',
@@ -24,7 +24,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             return Promise.allSettled(
-                assetsToCache.map(url => cache.add(url).catch(err => console.log('Erro ao salvar no cache:', url, err)))
+                assetsToCache.map(url => cache.add(url).catch(err => console.log('Aviso cache:', url, err)))
             );
         })
     );

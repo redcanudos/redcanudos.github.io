@@ -1,4 +1,4 @@
-const CACHE_NAME = 'red-canudos-v2';
+const CACHE_NAME = 'red-canudos-v3';
 const assetsToCache = [
     './',
     './index.html',
@@ -17,13 +17,15 @@ const assetsToCache = [
     './style.css',
     './script.js',
     './Logo Canudos.png',
-    './manifest.JSON'
+    './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(assetsToCache);
+            return Promise.allSettled(
+                assetsToCache.map(url => cache.add(url).catch(err => console.log('Erro ao salvar no cache:', url, err)))
+            );
         })
     );
 });

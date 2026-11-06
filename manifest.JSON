@@ -1,7 +1,7 @@
 {
     "name": "RED Canudos 2026",
     "short_name": "RED Canudos",
-    "start_url": "/index.html",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#121216",
     "theme_color": "#e50914",
@@ -9,12 +9,14 @@
         {
             "src": "Logo Canudos.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         },
         {
             "src": "Logo Canudos.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         }
     ]
 }

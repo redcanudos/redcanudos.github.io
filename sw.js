@@ -1,4 +1,4 @@
-const CACHE_NAME = 'red-canudos-v4';
+const CACHE_NAME = 'red-canudos-v5';
 const assetsToCache = [
     './',
     './index.html',
@@ -16,7 +16,7 @@ const assetsToCache = [
     './times.html',
     './style.css',
     './script.js',
-    './Logo Canudos.png',
+    './Logo Canudos.jpg',
     './manifest.json'
 ];
 

@@ -22,10 +22,10 @@ if (menuToggle) {
 
 <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then((reg) => console.log('Service Worker registrado com sucesso:', reg.scope))
-                .catch((err) => console.log('Falha ao registrar Service Worker:', err));
-        })
-    }
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then((reg) => console.log('Service Worker registrado:', reg.scope))
+            .catch((err) => console.log('Erro:', err));
+    })
+}
 </script>

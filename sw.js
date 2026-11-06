@@ -1,4 +1,4 @@
-const CACHE_NAME = 'red-canudos-v6';
+const CACHE_NAME = 'red-canudos-v7';
 const assetsToCache = [
     './',
     './index.html',
@@ -23,11 +23,14 @@ const assetsToCache = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return Promise.allSettled(
-                assetsToCache.map(url => cache.add(url).catch(err => console.log('Aviso cache:', url, err)))
-            );
+            return cache.addAll(assetsToCache);
         })
     );
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {

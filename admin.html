@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- BIBLIOTECA DE OCR LOCAL -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Configurações PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e50914">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         body {
             overflow-x: hidden;
@@ -47,7 +52,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 0.85srem;
+            font-size: 0.85rem;
             transition: all 0.2s;
         }
         .tab-btn.active, .tab-btn:hover {
@@ -241,6 +246,7 @@
             <div class="admin-tabs">
                 <button class="tab-btn active" data-tab="tabNoticias"><i class="fa-solid fa-newspaper"></i> Notícias</button>
                 <button class="tab-btn" data-tab="tabTimes"><i class="fa-solid fa-shield-halved"></i> Times & Plantel</button>
+                <button class="tab-btn" data-tab="tabConfrontos"><i class="fa-solid fa-calendar-days"></i> Próximos Confrontos</button>
                 <button class="tab-btn" data-tab="tabPartidas"><i class="fa-solid fa-gamepad"></i> Partidas & Processar Prints</button>
             </div>
 
@@ -314,7 +320,6 @@
                                 <input type="file" id="logoTimeFile" accept="image/*">
                             </div>
 
-                            <!-- JOGADORES DA EQUIPE -->
                             <div style="margin-top: 1.5rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                                     <label style="font-size: 0.95rem; color: #fff; font-weight: 800;"><i class="fa-solid fa-users"></i> Jogadores do Plantel</label>
@@ -332,9 +337,7 @@
                                                 <th style="width: 40px;"></th>
                                             </tr>
                                         </thead>
-                                        <tbody id="tabelaJogadoresTimeInput">
-                                            <!-- Preenchido via JS -->
-                                        </tbody>
+                                        <tbody id="tabelaJogadoresTimeInput"></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -353,6 +356,50 @@
                 </div>
             </div>
 
+            <!-- ================= ABA: PRÓXIMOS CONFRONTOS (COM SELECT DE TIMES) ================= -->
+            <div id="tabConfrontos" class="tab-content" style="display: none;">
+                <div class="admin-grid">
+                    <section class="admin-card">
+                        <h3><i class="fa-solid fa-calendar-plus"></i> Cadastrar Próximo Confronto</h3>
+                        <form id="formConfronto" class="admin-form" style="margin-top: 1rem;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="confTimeA">Time 1 (Casa)</label>
+                                    <select id="confTimeA" required>
+                                        <option value="">Selecione o time...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confTimeB">Time 2 (Visitante)</label>
+                                    <select id="confTimeB" required>
+                                        <option value="">Selecione o time...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="confData">Data</label>
+                                    <input type="text" id="confData" placeholder="Ex: 08/11/2026" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confHora">Horário</label>
+                                    <input type="text" id="confHora" placeholder="Ex: 15:00" required>
+                                </div>
+                            </div>
+                            <button type="submit" id="btnSalvarConfronto" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Agendar Confronto</button>
+                            <p id="msgConfrontoStatus" class="form-status" style="margin-top: 0.8rem; font-size: 0.85rem; font-weight: 700;"></p>
+                        </form>
+                    </section>
+
+                    <section class="admin-card">
+                        <h3><i class="fa-solid fa-calendar-days"></i> Confrontos Agendados</h3>
+                        <div id="listaConfrontosAdmin" class="admin-news-list">
+                            <p class="loading-text">Carregando...</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
             <!-- ================= ABA 3: PARTIDAS & PRINTS ================= -->
             <div id="tabPartidas" class="tab-content" style="display: none;">
                 <div class="admin-grid">
@@ -361,7 +408,6 @@
                         <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Prints (Fim de Jogo + Draft)</h3>
                         <form id="formPartida" class="admin-form" style="margin-top: 1rem;">
                             
-                            <!-- CAIXA DE UPLOADS DOS PRINTS -->
                             <div class="ai-box">
                                 <h4><i class="fa-solid fa-file-image"></i> Enviar Prints da Partida</h4>
                                 <div class="form-row" style="margin-top: 0.8rem;">
@@ -404,7 +450,6 @@
                                 </div>
                             </div>
 
-                            <!-- BANS SEPARADOS POR TIME -->
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="bansTimeAzul"><i class="fa-solid fa-ban" style="color:#00b0ff;"></i> Bans do Time Azul</label>
@@ -416,7 +461,6 @@
                                 </div>
                             </div>
 
-                            <!-- TABELA DE JOGADORES -->
                             <div style="margin-top: 1.5rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                                     <label style="font-size: 0.95rem; color: #fff; font-weight: 800;"><i class="fa-solid fa-users"></i> Jogadores e KDAs Extraídos</label>
@@ -435,9 +479,7 @@
                                                 <th style="width: 40px;"></th>
                                             </tr>
                                         </thead>
-                                        <tbody id="tabelaJogadoresInput">
-                                            <!-- Preenchido via JS -->
-                                        </tbody>
+                                        <tbody id="tabelaJogadoresInput"></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -447,7 +489,6 @@
                         </form>
                     </section>
 
-                    <!-- LISTA DE PARTIDAS REGISTRADAS -->
                     <section class="admin-card" style="grid-column: span 2;">
                         <h3><i class="fa-solid fa-trophy"></i> Partidas Registradas</h3>
                         <div id="listaPartidas" class="admin-news-list">
@@ -484,7 +525,6 @@
 
         let timesCadastradosCache = {};
 
-        // CONTROLE DE ABAS
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -495,14 +535,15 @@
             });
         });
 
-        // AUTENTICAÇÃO
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
                 document.getElementById('btnLogout').style.display = 'inline-flex';
+                await carregarSelectsTimes();
                 carregarNoticias();
                 carregarTimesAdmin();
+                carregarConfrontosAdmin();
                 carregarPartidas();
             } else {
                 document.getElementById('loginSection').style.display = 'flex';
@@ -521,6 +562,26 @@
         });
 
         document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
+
+        // CARREGAR TIMES CADASTRADOS NOS SELECTS DO CONFRONTO
+        async function carregarSelectsTimes() {
+            const selectA = document.getElementById('confTimeA');
+            const selectB = document.getElementById('confTimeB');
+            try {
+                const snap = await getDocs(collection(db, "tabela"));
+                selectA.innerHTML = '<option value="">Selecione o time...</option>';
+                selectB.innerHTML = '<option value="">Selecione o time...</option>';
+
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const nome = data.nome || docSnap.id;
+                    selectA.innerHTML += `<option value="${nome}">${nome}</option>`;
+                    selectB.innerHTML += `<option value="${nome}">${nome}</option>`;
+                });
+            } catch (err) {
+                console.error("Erro ao carregar times para o select:", err);
+            }
+        }
 
         const convertBase64 = (file) => {
             return new Promise((resolve, reject) => {
@@ -544,7 +605,88 @@
             });
         };
 
-        // ADICIONAR LINHA DE JOGADOR NO CADASTRO DE TIME
+        // CADASTRO DE PRÓXIMOS CONFRONTOS
+        document.getElementById('formConfronto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarConfronto');
+            const msg = document.getElementById('msgConfrontoStatus');
+            const timeA = document.getElementById('confTimeA').value;
+            const timeB = document.getElementById('confTimeB').value;
+
+            if (timeA === timeB) {
+                alert("Os times não podem ser iguais!");
+                return;
+            }
+
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "confrontos"), {
+                    homeTeam: timeA,
+                    awayTeam: timeB,
+                    data: document.getElementById('confData').value.trim(),
+                    horario: document.getElementById('confHora').value.trim(),
+                    createdAt: new Date()
+                });
+
+                msg.style.color = "#00e676";
+                msg.innerText = "✓ Confronto agendado com sucesso!";
+                document.getElementById('formConfronto').reset();
+                carregarConfrontosAdmin();
+            } catch (err) {
+                console.error(err);
+                msg.style.color = "#ff5252";
+                msg.innerText = "Erro ao agendar confronto.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        async function carregarConfrontosAdmin() {
+            const list = document.getElementById('listaConfrontosAdmin');
+            list.innerHTML = '<p class="loading-text">Carregando...</p>';
+            try {
+                const q = query(collection(db, "confrontos"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    list.innerHTML = '<p class="empty-text">Nenhum confronto agendado.</p>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const id = docSnap.id;
+
+                    const item = document.createElement('div');
+                    item.className = 'admin-news-item';
+                    item.innerHTML = `
+                        <div class="item-info">
+                            <span class="item-tag">${d.data} às ${d.horario}</span>
+                            <h4>${d.homeTeam} vs ${d.awayTeam}</h4>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-delete-conf" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                list.querySelectorAll('.btn-delete-conf').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        if (confirm("Deseja apagar este confronto agendado?")) {
+                            await deleteDoc(doc(db, "confrontos", id));
+                            carregarConfrontosAdmin();
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
         function adicionarLinhaJogadorTime(nick = '', funcao = '', opgg = '', fotoUrl = '') {
             const tbody = document.getElementById('tabelaJogadoresTimeInput');
             const tr = document.createElement('tr');
@@ -565,7 +707,6 @@
 
         document.getElementById('btnAddJogadorTime').addEventListener('click', () => adicionarLinhaJogadorTime());
 
-        // CADASTRAR OU EDITAR TIME
         document.getElementById('formCadastrarTime').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvarTime');
@@ -637,8 +778,9 @@
                 document.getElementById('tabelaJogadoresTimeInput').innerHTML = '';
                 nomeTimeInput.disabled = false;
                 carregarTimesAdmin();
+                await carregarSelectsTimes();
             } catch (err) {
-                console.error("Erro ao salvar time:", err);
+                console.error(err);
                 msg.style.color = "#ff5252";
                 msg.innerText = "Erro ao salvar time.";
             } finally {
@@ -696,12 +838,12 @@
                         if (confirm(`Deseja remover o time "${nomeTime}" da liga?`)) {
                             await deleteDoc(doc(db, "tabela", nomeTime));
                             carregarTimesAdmin();
+                            await carregarSelectsTimes();
                         }
                     });
                 });
-
             } catch (err) {
-                console.error("Erro ao carregar times admin:", err);
+                console.error(err);
             }
         }
 
@@ -747,10 +889,8 @@
 
         document.getElementById('btnAddJogador').addEventListener('click', () => adicionarLinhaJogador());
 
-        // PROCESSADOR DE PRINTS
         document.getElementById('btnProcessarPrint').addEventListener('click', async () => {
             const status = document.getElementById('ocrStatus');
-
             status.style.color = "#ffb74d";
             status.innerText = "⏳ Extraindo tempo, bans de cada time e estatísticas...";
 
@@ -779,15 +919,13 @@
 
                 status.style.color = "#00e676";
                 status.innerText = "✓ Sucesso! Bans divididos por time e estatísticas carregadas!";
-
             } catch (err) {
-                console.error("Erro ao ler print:", err);
+                console.error(err);
                 status.style.color = "#ff5252";
                 status.innerText = "Erro ao processar imagem.";
             }
         });
 
-        // PUBLICAR NOTÍCIA
         document.getElementById('formNoticia').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
@@ -841,7 +979,7 @@
                             <h4>${d.titulo}</h4>
                         </div>
                         <div class="item-actions">
-                            <a href="noticia.html?id=${id}" target="_blank" class="btn-view" title="Ver"><i class="fa-solid fa-eye"></i></a>
+                            <a href="detalhes-noticia.html?id=${id}" target="_blank" class="btn-view" title="Ver"><i class="fa-solid fa-eye"></i></a>
                             <button class="btn-delete" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     `;
@@ -857,7 +995,6 @@
                         }
                     });
                 });
-
             } catch (err) {
                 console.error(err);
             }
@@ -910,14 +1047,7 @@
                     const pRef = doc(db, "estatisticas_jogadores", nick);
                     const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
 
-                    await setDoc(pRef, {
-                        nick: nick,
-                        campeao: campeao,
-                        abates: k,
-                        mortes: d,
-                        assistencias: a,
-                        kda: kdaCalc
-                    });
+                    await setDoc(pRef, { nick, campeao, abates: k, mortes: d, assistencias: a, kda: kdaCalc });
                 }
 
                 const todosBans = [...listaBansAzul, ...listaBansVermelho];
@@ -926,19 +1056,27 @@
                     const bRef = doc(db, "estatisticas_bans", champBan);
                     const bSnap = await getDoc(bRef);
                     let qtd = 1;
-                    if (bSnap.exists()) {
-                        qtd += bSnap.data().qtd || 0;
-                    }
-                    await setDoc(bRef, { nome: champBan, qtd: qtd });
+                    if (bSnap.exists()) qtd += bSnap.data().qtd || 0;
+                    await setDoc(bRef, { nome: champBan, qtd });
                 }
 
+                // Remove automático dos Próximos Confrontos se existir agendado
+                const confSnap = await getDocs(collection(db, "confrontos"));
+                confSnap.forEach(async (cDoc) => {
+                    const cData = cDoc.data();
+                    if ((cData.homeTeam.toLowerCase() === timeA.toLowerCase() && cData.awayTeam.toLowerCase() === timeB.toLowerCase()) ||
+                        (cData.homeTeam.toLowerCase() === timeB.toLowerCase() && cData.awayTeam.toLowerCase() === timeA.toLowerCase())) {
+                        await deleteDoc(doc(db, "confrontos", cDoc.id));
+                    }
+                });
+
                 document.getElementById('msgPartidaStatus').style.color = "#00e676";
-                document.getElementById('msgPartidaStatus').innerText = "✓ Partida salva! Bans separados por equipe publicados!";
+                document.getElementById('msgPartidaStatus').innerText = "✓ Partida salva! Removido dos próximos confrontos e histórico atualizado!";
                 document.getElementById('formPartida').reset();
                 document.getElementById('tabelaJogadoresInput').innerHTML = '';
                 carregarPartidas();
             } catch (error) {
-                console.error("Erro ao salvar:", error);
+                console.error(error);
                 document.getElementById('msgPartidaStatus').style.color = "#ff5252";
                 document.getElementById('msgPartidaStatus').innerText = "Erro ao salvar dados.";
             } finally {
@@ -959,12 +1097,7 @@
                 d += data.derrotas || 0;
             }
 
-            await setDoc(docRef, {
-                nome: timeNome,
-                vitorias: v,
-                derrotas: d,
-                pontos: v * 3
-            }, { merge: true });
+            await setDoc(docRef, { nome: timeNome, vitorias: v, derrotas: d, pontos: v * 3 }, { merge: true });
         }
 
         async function carregarPartidas() {
@@ -1007,7 +1140,6 @@
                         }
                     });
                 });
-
             } catch (err) {
                 console.error(err);
             }

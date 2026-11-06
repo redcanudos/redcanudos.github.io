@@ -1,4 +1,4 @@
-const CACHE_NAME = 'red-canudos-v8';
+const CACHE_NAME = 'red-canudos-v9';
 const assetsToCache = [
     './',
     './index.html',
@@ -8,17 +8,17 @@ const assetsToCache = [
     './manifest.json'
 ];
 
-// Instalação do Service Worker
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(assetsToCache);
+            return Promise.allSettled(
+                assetsToCache.map(url => cache.add(url).catch(err => console.log('Falha ao fazer cache:', url, err)))
+            );
         })
     );
     self.skipWaiting();
 });
 
-// Ativação e limpeza de caches antigas
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -34,7 +34,6 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Interceção de requisições (Cache First, fallback para a rede)
 self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then((response) => {

@@ -144,9 +144,11 @@
             "GRUPO D": ["Cunil", "Vitingadores", "Capangas do Marechal"]
         };
 
-        // CARREGAR PRÓXIMOS CONFRONTOS COM LOGOS E PLACAR/DESTAQUE DO VENCEDOR
+        // CARREGAR PRÓXIMOS CONFRONTOS COM ORDENAÇÃO CRONOLÓGICA PERFEITA NO JS
         async function carregarConfrontosHome() {
             const container = document.getElementById('homeConfrontosList');
+            if (!container) return;
+
             try {
                 // Busca logos dos times do banco
                 const snapTimes = await getDocs(collection(db, "tabela"));
@@ -165,10 +167,11 @@
                     const chave1 = `${p.homeTeam.trim().toLowerCase()}_${p.awayTeam.trim().toLowerCase()}`;
                     const chave2 = `${p.awayTeam.trim().toLowerCase()}_${p.homeTeam.trim().toLowerCase()}`;
                     mapResultados[chave1] = { homeScore: p.homeScore, awayScore: p.awayScore, invertido: false };
-                    mapResultados[chave2] = { homeScore: p.homeScore, awayScore: p.awayScore, invertido: true };
+                    mapResultados[chave2] = { homeScore: p.homeScore, awayScore: p.homeScore, invertido: true };
                 });
 
-                const q = query(collection(db, "confrontos"), orderBy("createdAt", "asc"));
+                // Busca os confrontos sem orderBy do Firebase para evitar conflitos de tipo de dados
+                const q = query(collection(db, "confrontos"));
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
@@ -176,9 +179,34 @@
                     return;
                 }
 
-                container.innerHTML = '';
+                // 1. Converte os documentos em um Array JavaScript
+                let confrontos = [];
                 snap.forEach(docSnap => {
-                    const c = docSnap.data();
+                    confrontos.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // 2. Ordena de forma cronológica estrita: do dia/horário mais próximo (ex: 07/11 às 14:00) para o futuro
+                confrontos.sort((a, b) => {
+                    const parseDataEHorario = (item) => {
+                        if (!item.data) return 0;
+                        const partesData = item.data.split('/');
+                        if (partesData.length !== 3) return 0;
+
+                        const dia = partesData[0];
+                        const mes = partesData[1];
+                        const ano = partesData[2];
+                        const horario = item.horario || "00:00";
+                        
+                        // Retorna o timestamp em milissegundos exato
+                        return new Date(`${ano}-${mes}-${dia}T${horario}:00`).getTime();
+                    };
+
+                    return parseDataEHorario(a) - parseDataEHorario(b);
+                });
+
+                // 3. Renderiza os cards organizados na tela
+                container.innerHTML = '';
+                confrontos.forEach(c => {
                     const tA = c.homeTeam.trim();
                     const tB = c.awayTeam.trim();
                     
@@ -193,7 +221,6 @@
                     let corB = '#fff';
 
                     if (res) {
-                        // Jogo já aconteceu! Mostra placar e destaca vencedor em verde
                         let scoreA = res.invertido ? res.awayScore : res.homeScore;
                         let scoreB = res.invertido ? res.homeScore : res.awayScore;
 
@@ -202,7 +229,6 @@
 
                         centroHtml = `<span style="font-size:1.1rem; font-weight:900; color:var(--red-primary); background:rgba(229,9,20,0.1); padding:0.2rem 0.6rem; border-radius:4px;">${scoreA} - ${scoreB}</span>`;
                     } else {
-                        // Jogo futuro! Mostra data e horário
                         centroHtml = `<span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">VS<br>${c.horario || ''}</span>`;
                     }
 
@@ -239,7 +265,7 @@
                     container.appendChild(card);
                 });
             } catch (err) {
-                console.error(err);
+                console.error("Erro ao carregar confrontos:", err);
                 container.innerHTML = '<p class="empty-text">Erro ao carregar confrontos.</p>';
             }
         }

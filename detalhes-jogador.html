@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Jogador · RED CANUDOS</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Configurações PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#e50914">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        .player-header-card {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .player-avatar-lg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--bg-main);
+            border: 3px solid var(--red-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--red-primary);
+            font-weight: bold;
+            object-fit: cover;
+        }
+        .metrics-grid-player {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .tabla-perfil {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .tabla-perfil th, .tabla-perfil td {
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tabla-perfil th { text-align: left; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        .tabla-perfil td { font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-brand">
+                <img src="Logo Canudos.png" alt="RED Canudos Logo" class="nav-logo">
+                <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
+            </a>
+            <nav class="nav-links">
+                <a href="index.html">Início</a>
+                <a href="times.html">Times</a>
+                <a href="jogadores.html" class="active">Jogadores</a>
+                <a href="partidas.html">Partidas</a>
+                <a href="tabela.html">Tabela</a>
+                <a href="estatisticas.html">Estatísticas</a>
+                <a href="regras.html">Regras</a>
+                <a href="hall.html">Hall of Canudos</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-container">
+        
+        <div style="margin-bottom: 1.5rem;">
+            <a href="jogadores.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 700;"><i class="fa-solid fa-arrow-left"></i> Voltar para Jogadores</a>
+        </div>
+
+        <!-- CABEÇALHO DO PERFIL -->
+        <div class="player-header-card" id="playerHeaderInfo">
+            <div class="player-avatar-lg"><i class="fa-solid fa-user"></i></div>
+            <div>
+                <span id="playerRoleTag" style="font-size: 0.75rem; color: var(--red-primary); font-weight: 800; text-transform: uppercase;">Atleta da Matilha</span>
+                <h1 id="playerNickTitle" style="font-size: 2.2rem; color: #fff; margin: 0.2rem 0;">Carregando...</h1>
+                <p id="playerTeamName" style="color: var(--text-muted); margin: 0; font-weight: 600;">—</p>
+            </div>
+        </div>
+
+        <!-- CARDS DE MÉTRICAS DO JOGADOR -->
+        <div class="metrics-grid-player">
+            <div class="sidebar-card text-center" style="padding: 1.2rem;">
+                <span style="font-size: 0.70rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Partidas Jogadas</span>
+                <h2 id="statPartidas" style="font-size: 1.8rem; color: #fff; margin-top: 0.2rem;">0</h2>
+            </div>
+            <div class="sidebar-card text-center" style="padding: 1.2rem;">
+                <span style="font-size: 0.70rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Média de KDA</span>
+                <h2 id="statKdaMedio" style="font-size: 1.8rem; color: var(--red-primary); margin-top: 0.2rem;">0.00</h2>
+            </div>
+            <div class="sidebar-card text-center" style="padding: 1.2rem;">
+                <span style="font-size: 0.70rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Total de Abates (K)</span>
+                <h2 id="statAbates" style="font-size: 1.8rem; color: #fff; margin-top: 0.2rem;">0</h2>
+            </div>
+            <div class="sidebar-card text-center" style="padding: 1.2rem;">
+                <span style="font-size: 0.70rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Total de Mortes (D)</span>
+                <h2 id="statMortes" style="font-size: 1.8rem; color: #ff5252; margin-top: 0.2rem;">0</h2>
+            </div>
+            <div class="sidebar-card text-center" style="padding: 1.2rem;">
+                <span style="font-size: 0.70rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Total de Assistências (A)</span>
+                <h2 id="statAssistencias" style="font-size: 1.8rem; color: #fff; margin-top: 0.2rem;">0</h2>
+            </div>
+        </div>
+
+        <!-- HISTÓRICO DE PARTIDAS DO JOGADOR -->
+        <section class="sidebar-card" style="padding: 2rem;">
+            <div class="section-title-bar">
+                <h2><i class="fa-solid fa-gamepad"></i> HISTÓRICO DE PARTIDAS DO ATLETA</h2>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="tabla-perfil">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Campeão Jogado</th>
+                            <th class="text-center">Abates (K)</th>
+                            <th class="text-center">Mortes (D)</th>
+                            <th class="text-center">Assistências (A)</th>
+                            <th class="text-center">KDA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playerMatchHistoryBody">
+                        <tr><td colspan="6" class="loading-text">Carregando histórico do jogador...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>RED CANUDOS © 2026 · O TORNEIO DA MATILHA</p>
+    </footer>
+
+    <!-- FIREBASE E SCRIPT DE CARREGAMENTO -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3g6QE7YBg0vEAYoCoZa4lI3hc2_C-J4Y",
+            authDomain: "canudos-200c7.firebaseapp.com",
+            projectId: "canudos-200c7",
+            storageBucket: "canudos-200c7.firebasestorage.app",
+            messagingSenderId: "1055281066343",
+            appId: "1:1055281066343:web:80afb45157dacbe503bfc2",
+            measurementId: "G-JEP4G8QFHE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const playerNick = urlParams.get('nick');
+
+        async function carregarPerfilJogador() {
+            if (!playerNick) {
+                document.getElementById('playerNickTitle').innerText = "Jogador não especificado";
+                return;
+            }
+
+            document.getElementById('playerNickTitle').innerText = playerNick;
+
+            try {
+                // 1. Busca dados cadastrais do jogador nos plantéis dos times
+                const snapTimes = await getDocs(collection(db, "tabela"));
+                let timeEncontrado = "Time não vinculado";
+                let funcaoJogador = "Atleta";
+                let fotoUrlJogador = "";
+
+                snapTimes.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.plantel && Array.isArray(data.plantel)) {
+                        data.plantel.forEach(j => {
+                            if (j.nick && j.nick.toLowerCase() === playerNick.toLowerCase()) {
+                                timeEncontrado = data.nome || docSnap.id;
+                                funcaoJogador = j.funcao || "Atleta";
+                                fotoUrlJogador = j.fotoUrl || "";
+                            }
+                        });
+                    }
+                });
+
+                document.getElementById('playerTeamName').innerText = timeEncontrado;
+                document.getElementById('playerRoleTag').innerText = funcaoJogador;
+
+                if (fotoUrlJogador) {
+                    document.querySelector('.player-avatar-lg').innerHTML = `<img src="${fotoUrlJogador}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                }
+
+                // 2. Busca todas as estatísticas registradas deste jogador na coleção estatisticas_jogadores
+                const qStats = query(collection(db, "estatisticas_jogadores"), where("nick", "==", playerNick));
+                const snapStats = await getDocs(qStats);
+
+                const tbody = document.getElementById('playerMatchHistoryBody');
+
+                if (snapStats.empty) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-text">Nenhuma partida registrada para este jogador ainda.</td></tr>';
+                    return;
+                }
+
+                let totalK = 0;
+                let totalD = 0;
+                let totalA = 0;
+                let somaKda = 0;
+                let qtdPartidas = 0;
+
+                tbody.innerHTML = '';
+                snapStats.forEach(docSnap => {
+                    const st = docSnap.data();
+                    totalK += (st.abates || 0);
+                    totalD += (st.mortes || 0);
+                    totalA += (st.assistencias || 0);
+                    somaKda += (st.kda || 0);
+                    qtdPartidas++;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${st.createdAt ? new Date(st.createdAt.seconds * 1000).toLocaleDateString('pt-BR') : 'Recente'}</td>
+                        <td><strong>${st.campeao || 'Geral'}</strong></td>
+                        <td class="text-center" style="font-weight:700;">${st.abates || 0}</td>
+                        <td class="text-center" style="color:#ff5252; font-weight:700;">${st.mortes || 0}</td>
+                        <td class="text-center" style="font-weight:700;">${st.assistencias || 0}</td>
+                        <td class="text-center" style="color:var(--red-primary); font-weight:900;">${st.kda || '0.00'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Atualiza os cards de métricas
+                document.getElementById('statPartidas').innerText = qtdPartidas;
+                document.getElementById('statAbates').innerText = totalK;
+                document.getElementById('statMortes').innerText = totalD;
+                document.getElementById('statAssistencias').innerText = totalA;
+                document.getElementById('statKdaMedio').innerText = qtdPartidas > 0 ? (somaKda / qtdPartidas).toFixed(2) : '0.00';
+
+            } catch (err) {
+                console.error("Erro ao carregar perfil do jogador:", err);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', carregarPerfilJogador);
+    </script>
+</body>
+</html>

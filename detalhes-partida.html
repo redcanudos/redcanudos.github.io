@@ -6,34 +6,63 @@
     <title>Detalhes da Partida · RED CANUDOS</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Configurações PWA -->
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#e50914">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#e50914">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .team-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem;
+            box-sizing: border-box;
+        }
+        .team-box.azul {
+            border-top: 4px solid #00b0ff;
+        }
+        .team-box.vermelho {
+            border-top: 4px solid #ff5252;
+        }
+        .team-box-header {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .tabla-detalhes {
             width: 100%;
             border-collapse: collapse;
         }
         .tabla-detalhes th, 
         .tabla-detalhes td {
-            padding: 0.8rem;
+            padding: 0.6rem;
             border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem;
         }
-        .tabla-detalhes th.col-center, 
-        .tabla-detalhes td.col-center {
-            text-align: center !important;
+        .tabla-detalhes th {
+            text-align: left;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
         }
-        .tabla-detalhes th.col-left, 
-        .tabla-detalhes td.col-left {
-            text-align: left !important;
+        @media (max-width: 900px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- NAVBAR -->
     <header class="navbar">
         <div class="nav-container">
             <div class="logo-brand">
@@ -41,14 +70,14 @@
                 <span class="brand-name"><span class="red-text">RED</span> CANUDOS</span>
             </div>
             <nav class="nav-links">
-            <a href="index.html">Início</a>
-            <a href="times.html">Times</a>
-            <a href="jogadores.html">Jogadores</a>
-            <a href="partidas.html" class="active">Partidas</a>
-            <a href="tabela.html">Tabela</a>
-            <a href="estatisticas.html">Estatísticas</a>
-            <a href="regras.html">Regras</a>
-            <a href="hall.html">Hall of Canudos</a>
+                <a href="index.html">Início</a>
+                <a href="times.html">Times</a>
+                <a href="jogadores.html">Jogadores</a>
+                <a href="partidas.html" class="active">Partidas</a>
+                <a href="tabela.html">Tabela</a>
+                <a href="estatisticas.html">Estatísticas</a>
+                <a href="regras.html">Regras</a>
+                <a href="hall.html">Hall of Canudos</a>
             </nav>
         </div>
     </header>
@@ -66,55 +95,62 @@
             </div>
         </section>
 
-        <!-- SEÇÃO DE BANS DIVIDIDOS POR TIME -->
-        <div class="dashboard-grid">
-            
-            <section class="sidebar-card" style="grid-column: span 2;">
-                <div class="section-title-bar">
-                    <h2><i class="fa-solid fa-ban"></i> CAMPEÕES BANIDOS NA PARTIDA</h2>
-                </div>
+        <!-- COMPARAÇÃO LADO A LADO: TIME AZUL (ESQUERDA) VS TIME VERMELHO (DIREITA) -->
+        <section class="sidebar-card" style="padding: 2rem;">
+            <div class="section-title-bar">
+                <h2><i class="fa-solid fa-users"></i> COMPARAÇÃO DE DESEMPENHO DA PARTIDA</h2>
+            </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                    <!-- BANS TIME AZUL -->
-                    <div style="background: var(--bg-main); padding: 1rem; border-radius: 6px; border: 1px solid #00b0ff33;">
-                        <h3 id="nomeTimeAzulBans" style="color: #00b0ff; font-size: 0.95rem; margin-bottom: 0.8rem; text-transform: uppercase;">Time Azul</h3>
-                        <div id="boxBansAzul" style="display: flex; gap: 0.4rem; flex-wrap: wrap;"></div>
+            <div class="comparison-container">
+                <!-- COLUNA ESQUERDA: TIME AZUL -->
+                <div class="team-box azul">
+                    <div class="team-box-header">
+                        <span id="labelTimeAzul" style="color: #00b0ff;">TIME AZUL</span>
+                        <span id="scoreTimeAzul" style="font-size: 0.9rem; background: #00b0ff15; padding: 0.2rem 0.6rem; border-radius: 4px; color: #00b0ff;">Abates: 0</span>
                     </div>
-
-                    <!-- BANS TIME VERMELHO -->
-                    <div style="background: var(--bg-main); padding: 1rem; border-radius: 6px; border: 1px solid #ff525233;">
-                        <h3 id="nomeTimeVermelhoBans" style="color: #ff5252; font-size: 0.95rem; margin-bottom: 0.8rem; text-transform: uppercase;">Time Vermelho</h3>
-                        <div id="boxBansVermelho" style="display: flex; gap: 0.4rem; flex-wrap: wrap;"></div>
+                    <div style="overflow-x: auto;">
+                        <table class="tabla-detalhes">
+                            <thead>
+                                <tr>
+                                    <th>Rota</th>
+                                    <th>Jogador</th>
+                                    <th>Campeão</th>
+                                    <th class="text-center">K / D / A</th>
+                                    <th class="text-center">KDA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyTimeAzul">
+                                <tr><td colspan="5" class="loading-text">Carregando...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </section>
 
-            <!-- TABELA DE ESTATÍSTICAS DOS JOGADORES DA PARTIDA -->
-            <section class="sidebar-card" style="grid-column: span 2;">
-                <div class="section-title-bar">
-                    <h2><i class="fa-solid fa-users"></i> DESEMPENHO INDIVIDUAL DOS JOGADORES</h2>
+                <!-- COLUNA DIREITA: TIME VERMELHO -->
+                <div class="team-box vermelho">
+                    <div class="team-box-header">
+                        <span id="labelTimeVermelho" style="color: #ff5252;">TIME VERMELHO</span>
+                        <span id="scoreTimeVermelho" style="font-size: 0.9rem; background: #ff525215; padding: 0.2rem 0.6rem; border-radius: 4px; color: #ff5252;">Abates: 0</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="tabla-detalhes">
+                            <thead>
+                                <tr>
+                                    <th>Rota</th>
+                                    <th>Jogador</th>
+                                    <th>Campeão</th>
+                                    <th class="text-center">K / D / A</th>
+                                    <th class="text-center">KDA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyTimeVermelho">
+                                <tr><td colspan="5" class="loading-text">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-
-                <div style="overflow-x: auto;">
-                    <table class="mini-table tabla-detalhes">
-                        <thead>
-                            <tr>
-                                <th class="col-left">Jogador</th>
-                                <th class="col-left">Campeão</th>
-                                <th class="col-center">Abates (K)</th>
-                                <th class="col-center">Mortes (D)</th>
-                                <th class="col-center">Assistências (A)</th>
-                                <th class="col-center">KDA</th>
-                            </tr>
-                        </thead>
-                        <tbody id="matchPlayersBody">
-                            <tr><td colspan="6" class="loading-text">Carregando estatísticas dos jogadores...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-        </div>
+            </div>
+        </section>
 
     </main>
 
@@ -122,10 +158,9 @@
         <p>RED CANUDOS © 2026 · O TORNEIO DA MATILHA</p>
     </footer>
 
-    <!-- INTEGRAÇÃO FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3g6QE7YBg0vEAYoCoZa4lI3hc2_C-J4Y",
@@ -142,6 +177,24 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const matchId = urlParams.get('id');
+
+        // Ordem hierárquica das rotas solicitada: TOP, JG, MID, ADC, SUP
+        const ordemRotasPeso = {
+            'top': 1,
+            'jg': 2, 'jungle': 2,
+            'mid': 3,
+            'adc': 4, 'atirador': 4, 'bot': 4,
+            'sup': 5, 'suporte': 5
+        };
+
+        function obterPesoRota(funcao) {
+            if (!funcao) return 99;
+            const f = funcao.toLowerCase().trim();
+            for (const chave in ordemRotasPeso) {
+                if (f.includes(chave)) return ordemRotasPeso[chave];
+            }
+            return 99;
+        }
 
         async function carregarDetalhes() {
             if (!matchId) {
@@ -160,7 +213,6 @@
 
                 const p = docSnap.data();
 
-                // Cabeçalho
                 document.getElementById('partidaHeader').innerHTML = `
                     <span style="font-size:0.8rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">CONFRONTO · ${p.data || ''}</span>
                     <div style="display:flex; align-items:center; justify-content:center; gap:2rem; margin:1.5rem 0;">
@@ -168,52 +220,101 @@
                         <span style="font-size:2.8rem; font-weight:900; color:var(--red-primary); background:var(--bg-main); padding:0.4rem 1.5rem; border-radius:8px; border:1px solid var(--border-color);">${p.homeScore} - ${p.awayScore}</span>
                         <h2 style="font-size:1.8rem; color:#fff; flex:1; text-align:left;">${p.awayTeam}</h2>
                     </div>
-                    <span style="font-size:0.9rem; color:#fff; font-weight:700;"><i class="fa-regular fa-clock"></i> Duração: ${p.duracao || '20:00'}</span>
+                    <span style="font-size:0.9rem; color:#fff; font-weight:700;"><i class="fa-regular fa-clock"></i> Duração: ${p.duracao || '20:00'} · Vencedor: 👑 ${p.vencedorMapa || 'N/A'}</span>
                 `;
 
-                // Títulos e Caixas de Bans por Time
-                document.getElementById('nomeTimeAzulBans').innerText = `Bans de ${p.homeTeam}`;
-                document.getElementById('nomeTimeVermelhoBans').innerText = `Bans de ${p.awayTeam}`;
+                const timeAzulNome = p.homeTeam || 'Time Azul';
+                const timeVermelhoNome = p.awayTeam || 'Time Vermelho';
 
-                const boxAzul = document.getElementById('boxBansAzul');
-                const boxVermelho = document.getElementById('boxBansVermelho');
+                document.getElementById('labelTimeAzul').innerText = `🔵 ${timeAzulNome} (Lado Azul)`;
+                document.getElementById('labelTimeVermelho').innerText = `🔴 ${timeVermelhoNome} (Lado Vermelho)`;
+                document.getElementById('scoreTimeAzul').innerText = `Abates: ${p.homeScore}`;
+                document.getElementById('scoreTimeVermelho').innerText = `Abates: ${p.awayScore}`;
 
-                if (p.bansAzul && p.bansAzul.length > 0) {
-                    boxAzul.innerHTML = p.bansAzul.map(b => `<span style="background:#00b0ff15; border:1px solid #00b0ff55; color:#fff; padding:0.3rem 0.6rem; border-radius:4px; font-size:0.8rem; font-weight:700;"><i class="fa-solid fa-ban" style="color:#00b0ff;"></i> ${b}</span>`).join('');
-                } else {
-                    boxAzul.innerHTML = '<span style="color:var(--text-muted); font-size:0.8rem;">Nenhum ban registrado</span>';
-                }
+                const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", matchId));
+                const snapJogadores = await getDocs(qStats);
 
-                if (p.bansVermelho && p.bansVermelho.length > 0) {
-                    boxVermelho.innerHTML = p.bansVermelho.map(b => `<span style="background:#ff525215; border:1px solid #ff525255; color:#fff; padding:0.3rem 0.6rem; border-radius:4px; font-size:0.8rem; font-weight:700;"><i class="fa-solid fa-ban" style="color:#ff5252;"></i> ${b}</span>`).join('');
-                } else {
-                    boxVermelho.innerHTML = '<span style="color:var(--text-muted); font-size:0.8rem;">Nenhum ban registrado</span>';
-                }
-
-                // Tabela de Jogadores
-                const snapJogadores = await getDocs(collection(db, "estatisticas_jogadores"));
-                const playersBody = document.getElementById('matchPlayersBody');
+                const bodyAzul = document.getElementById('bodyTimeAzul');
+                const bodyVermelho = document.getElementById('bodyTimeVermelho');
 
                 if (snapJogadores.empty) {
-                    playersBody.innerHTML = '<tr><td colspan="6" class="empty-text">Sem dados de jogadores para esta partida.</td></tr>';
+                    bodyAzul.innerHTML = '<tr><td colspan="5" class="empty-text">Sem dados.</td></tr>';
+                    bodyVermelho.innerHTML = '<tr><td colspan="5" class="empty-text">Sem dados.</td></tr>';
                     return;
                 }
 
-                playersBody.innerHTML = '';
+                // Busca plantéis e funções cadastradas no banco
+                const snapTimes = await getDocs(collection(db, "tabela"));
+                const mapJogadorInfo = {};
+                snapTimes.forEach(tDoc => {
+                    const tData = tDoc.data();
+                    const nomeTime = tData.nome || tDoc.id;
+                    if (tData.plantel && Array.isArray(tData.plantel)) {
+                        tData.plantel.forEach(j => {
+                            if (j.nick) {
+                                mapJogadorInfo[j.nick.toLowerCase().trim()] = {
+                                    time: nomeTime.toLowerCase().trim(),
+                                    funcao: j.funcao || 'Atleta'
+                                };
+                            }
+                        });
+                    }
+                });
+
+                let listaAzul = [];
+                let listaVermelho = [];
+                let contadorFallback = 0;
+
                 snapJogadores.forEach(docSnap => {
                     const j = docSnap.data();
-                    const tr = document.createElement('tr');
+                    const nickLower = (j.nick || '').toLowerCase().trim();
+                    const info = mapJogadorInfo[nickLower] || { time: '', funcao: 'Atleta' };
 
-                    tr.innerHTML = `
-                        <td class="col-left"><strong>${j.nick}</strong></td>
-                        <td class="col-left" style="color:var(--text-muted);">${j.campeao || '—'}</td>
-                        <td class="col-center" style="font-weight:700;">${j.abates || 0}</td>
-                        <td class="col-center" style="color:#ff5252; font-weight:700;">${j.mortes || 0}</td>
-                        <td class="col-center" style="font-weight:700;">${j.assistencias || 0}</td>
-                        <td class="col-center" style="color:var(--red-primary); font-weight:900;">${j.kda || '0.00'}</td>
-                    `;
-                    playersBody.appendChild(tr);
+                    const jogadorObj = {
+                        nick: j.nick,
+                        campeao: j.campeao || '—',
+                        abates: j.abates || 0,
+                        mortes: j.mortes || 0,
+                        assistencias: j.assistencias || 0,
+                        kda: j.kda || '0.00',
+                        funcao: info.funcao,
+                        peso: obterPesoRota(info.funcao)
+                    };
+
+                    if (info.time && info.time === timeAzulNome.toLowerCase().trim()) {
+                        listaAzul.push(jogadorObj);
+                    } else if (info.time && info.time === timeVermelhoNome.toLowerCase().trim()) {
+                        listaVermelho.push(jogadorObj);
+                    } else {
+                        // Fallback caso o nick não esteja rigorosamente vinculado no plantel
+                        if (contadorFallback < 5) {
+                            listaAzul.push(jogadorObj);
+                        } else {
+                            listaVermelho.push(jogadorObj);
+                        }
+                        contadorFallback++;
+                    }
                 });
+
+                // Ordena rigorosamente por TOP (1), JG (2), MID (3), ADC (4), SUP (5)
+                listaAzul.sort((a, b) => a.peso - b.peso);
+                listaVermelho.sort((a, b) => a.peso - b.peso);
+
+                const renderizarLinhas = (lista) => {
+                    if (lista.length === 0) return '<tr><td colspan="5" class="empty-text">Nenhum jogador.</td></tr>';
+                    return lista.map(j => `
+                        <tr>
+                            <td><span style="font-size:0.75rem; background:rgba(255,255,255,0.06); padding:0.15rem 0.4rem; border-radius:3px; font-weight:800; color:var(--text-muted);">${j.funcao}</span></td>
+                            <td><strong>${j.nick}</strong></td>
+                            <td style="color:var(--text-muted);">${j.campeao}</td>
+                            <td class="text-center"><strong>${j.abates}</strong> / <span style="color:#ff5252;">${j.mortes}</span> / ${j.assistencias}</td>
+                            <td class="text-center" style="color:var(--red-primary); font-weight:900;">${j.kda}</td>
+                        </tr>
+                    `).join('');
+                };
+
+                bodyAzul.innerHTML = renderizarLinhas(listaAzul);
+                bodyVermelho.innerHTML = renderizarLinhas(listaVermelho);
 
             } catch (err) {
                 console.error("Erro ao carregar detalhes:", err);

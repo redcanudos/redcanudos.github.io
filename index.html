@@ -159,15 +159,17 @@
                     mapLogos[nome] = d.logoUrl || '';
                 });
 
-                // Busca partidas já jogadas para verificar se o confronto já tem resultado
-                const snapPartidas = await getDocs(collection(db, "partidas"));
+                // Busca os placares manuais de séries (MD3/MD5) cadastrados na aba administrativa "Placar Série / Hoje"
+                const snapResultadosHoje = await getDocs(collection(db, "resultados_hoje"));
                 const mapResultados = {};
-                snapPartidas.forEach(docSnap => {
+                snapResultadosHoje.forEach(docSnap => {
                     const p = docSnap.data();
-                    const chave1 = `${p.homeTeam.trim().toLowerCase()}_${p.awayTeam.trim().toLowerCase()}`;
-                    const chave2 = `${p.awayTeam.trim().toLowerCase()}_${p.homeTeam.trim().toLowerCase()}`;
-                    mapResultados[chave1] = { homeScore: p.homeScore, awayScore: p.awayScore, invertido: false };
-                    mapResultados[chave2] = { homeScore: p.homeScore, awayScore: p.homeScore, invertido: true };
+                    if (p.homeTeam && p.awayTeam) {
+                        const chave1 = `${p.homeTeam.trim().toLowerCase()}_${p.awayTeam.trim().toLowerCase()}`;
+                        const chave2 = `${p.awayTeam.trim().toLowerCase()}_${p.homeTeam.trim().toLowerCase()}`;
+                        mapResultados[chave1] = { homeScore: p.homeScore, awayScore: p.awayScore, invertido: false };
+                        mapResultados[chave2] = { homeScore: p.awayScore, awayScore: p.homeScore, invertido: true };
+                    }
                 });
 
                 // Busca os confrontos sem orderBy do Firebase para evitar conflitos de tipo de dados

@@ -6,13 +6,13 @@
     <title>Painel ADM · RED CANUDOS</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- BIBLIOTECA DE OCR LOCAL -->
+    <!-- BIBLIOTECA DE OCR LOCAL (Tesseract.js) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Configurações PWA -->
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#e50914">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#e50914">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         body {
             overflow-x: hidden;
@@ -154,7 +154,7 @@
             display: flex;
             gap: 0.5rem;
         }
-        .btn-delete, .btn-view {
+        .btn-delete, .btn-view, .btn-edit {
             background: #232732;
             border: 1px solid var(--border-color);
             color: #fff;
@@ -167,6 +167,11 @@
         .btn-delete:hover {
             background: #ff5252;
             border-color: #ff5252;
+        }
+        .btn-edit:hover {
+            background: #ffb74d;
+            border-color: #ffb74d;
+            color: #000;
         }
         .ai-box {
             background: var(--bg-main);
@@ -247,7 +252,8 @@
                 <button class="tab-btn active" data-tab="tabNoticias"><i class="fa-solid fa-newspaper"></i> Notícias</button>
                 <button class="tab-btn" data-tab="tabTimes"><i class="fa-solid fa-shield-halved"></i> Times & Plantel</button>
                 <button class="tab-btn" data-tab="tabConfrontos"><i class="fa-solid fa-calendar-days"></i> Próximos Confrontos</button>
-                <button class="tab-btn" data-tab="tabPartidas"><i class="fa-solid fa-gamepad"></i> Partidas & Processar Prints</button>
+                <button class="tab-btn" data-tab="tabPartidas"><i class="fa-solid fa-gamepad"></i> Partidas (Mapas)</button>
+                <button class="tab-btn" data-tab="tabResultadosHoje"><i class="fa-solid fa-trophy"></i> Placar Série / Hoje (Index)</button>
             </div>
 
             <!-- ================= ABA 1: NOTÍCIAS ================= -->
@@ -356,7 +362,7 @@
                 </div>
             </div>
 
-            <!-- ================= ABA: PRÓXIMOS CONFRONTOS (COM SELECT DE TIMES) ================= -->
+            <!-- ================= ABA: PRÓXIMOS CONFRONTOS ================= -->
             <div id="tabConfrontos" class="tab-content" style="display: none;">
                 <div class="admin-grid">
                     <section class="admin-card">
@@ -400,70 +406,64 @@
                 </div>
             </div>
 
-            <!-- ================= ABA 3: PARTIDAS & PRINTS ================= -->
+            <!-- ================= ABA 3: PARTIDAS & MAPAS ================= -->
             <div id="tabPartidas" class="tab-content" style="display: none;">
                 <div class="admin-grid">
                     
                     <section class="admin-card" style="grid-column: span 2;">
-                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Prints (Fim de Jogo + Draft)</h3>
+                        <h3 id="tituloFormPartida"><i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Print & Registro de Mapa</h3>
                         <form id="formPartida" class="admin-form" style="margin-top: 1rem;">
+                            <input type="hidden" id="editPartidaId" value="">
                             
                             <div class="ai-box">
-                                <h4><i class="fa-solid fa-file-image"></i> Enviar Prints da Partida</h4>
-                                <div class="form-row" style="margin-top: 0.8rem;">
-                                    <div class="form-group">
-                                        <label for="printEndGame"><i class="fa-solid fa-trophy"></i> Print do FIM DE JOGO</label>
-                                        <input type="file" id="printEndGame" accept="image/*">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="printDraft"><i class="fa-solid fa-ban"></i> Print do DRAFT / BANS</label>
-                                        <input type="file" id="printDraft" accept="image/*">
-                                    </div>
+                                <h4><i class="fa-solid fa-file-image"></i> Enviar Print do Fim de Jogo</h4>
+                                <div class="form-group" style="margin-top: 0.8rem;">
+                                    <label for="printEndGame"><i class="fa-solid fa-trophy"></i> Print da Tela de Fim de Jogo</label>
+                                    <input type="file" id="printEndGame" accept="image/*">
                                 </div>
-                                <button type="button" id="btnProcessarPrint" class="btn-ai" style="margin-top: 0.8rem;"><i class="fa-solid fa-microchip"></i> EXTRAIR DADOS DOS PRINTS AGORA</button>
+                                <button type="button" id="btnProcessarPrint" class="btn-ai" style="margin-top: 0.8rem;"><i class="fa-solid fa-microchip"></i> CARREGAR 10 LINHAS LIMPAS DA PARTIDA</button>
                                 <div id="ocrStatus" class="ai-status" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 700;"></div>
                             </div>
 
                             <div class="form-row" style="margin-top: 1rem;">
                                 <div class="form-group">
-                                    <label for="timeAzul">Time Azul</label>
-                                    <input type="text" id="timeAzul" placeholder="Ex: CAPANGAS DO MARECHAL" value="CAPANGAS DO MARECHAL" required>
+                                    <label for="timeAzul">Time Lado Azul</label>
+                                    <select id="timeAzul" required>
+                                        <option value="">Selecione o time azul...</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="timeVermelho">Time Vermelho</label>
-                                    <input type="text" id="timeVermelho" placeholder="Ex: RED MASTERS" value="RED MASTERS" required>
+                                    <label for="timeVermelho">Time Lado Vermelho</label>
+                                    <select id="timeVermelho" required>
+                                        <option value="">Selecione o time vermelho...</option>
+                                    </select>
                                 </div>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="placarAzul">Placar Azul</label>
-                                    <input type="number" id="placarAzul" min="0" value="1" required>
+                                    <label for="placarAzul">Abates (Kills) Time Azul</label>
+                                    <input type="number" id="placarAzul" min="0" placeholder="Ex: 22" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="placarVermelho">Placar Vermelho</label>
-                                    <input type="number" id="placarVermelho" min="0" value="0" required>
+                                    <label for="placarVermelho">Abates (Kills) Time Vermelho</label>
+                                    <input type="number" id="placarVermelho" min="0" placeholder="Ex: 7" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vencedorMapa"><i class="fa-solid fa-crown" style="color:gold;"></i> Time Vencedor Deste Mapa</label>
+                                    <select id="vencedorMapa" required>
+                                        <option value="">Selecione quem venceu o mapa...</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="duracaoPartida"><i class="fa-regular fa-clock"></i> Duração do Jogo (mm:ss)</label>
-                                    <input type="text" id="duracaoPartida" placeholder="23:16" value="23:16" required>
-                                </div>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="bansTimeAzul"><i class="fa-solid fa-ban" style="color:#00b0ff;"></i> Bans do Time Azul</label>
-                                    <input type="text" id="bansTimeAzul" placeholder="Ex: Rengar, Aphelios">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bansTimeVermelho"><i class="fa-solid fa-ban" style="color:#ff5252;"></i> Bans do Time Vermelho</label>
-                                    <input type="text" id="bansTimeVermelho" placeholder="Ex: Pyke, Pantheon">
+                                    <input type="text" id="duracaoPartida" placeholder="Ex: 20:43" required>
                                 </div>
                             </div>
 
                             <div style="margin-top: 1.5rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                    <label style="font-size: 0.95rem; color: #fff; font-weight: 800;"><i class="fa-solid fa-users"></i> Jogadores e KDAs Extraídos</label>
+                                    <label style="font-size: 0.95rem; color: #fff; font-weight: 800;"><i class="fa-solid fa-users"></i> Jogadores, Campeões e KDAs Extraídos</label>
                                     <button type="button" id="btnAddJogador" style="background: #232732; border: 1px solid var(--border-color); color: #fff; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Add Linha Extra</button>
                                 </div>
 
@@ -472,7 +472,7 @@
                                         <thead>
                                             <tr>
                                                 <th>Nick do Jogador</th>
-                                                <th>Campeão</th>
+                                                <th>Campeão Escolhido</th>
                                                 <th class="text-right">Abates (K)</th>
                                                 <th class="text-right">Mortes (D)</th>
                                                 <th class="text-right">Assistências (A)</th>
@@ -484,18 +484,81 @@
                                 </div>
                             </div>
 
-                            <button type="submit" id="btnSalvarPartida" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Confirmar e Salvar no Site Principal</button>
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" id="btnSalvarPartida" class="btn-submit" style="flex: 2;"><i class="fa-solid fa-floppy-disk"></i> Confirmar e Salvar Mapa</button>
+                                <button type="button" id="btnCancelarEdicaoPartida" style="display: none; flex: 1; background: #31313c; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-weight: 700; cursor: pointer;">Cancelar Edição</button>
+                            </div>
                             <p id="msgPartidaStatus" class="form-status" style="margin-top: 0.8rem; font-size: 0.85rem; font-weight: 700;"></p>
                         </form>
                     </section>
 
                     <section class="admin-card" style="grid-column: span 2;">
-                        <h3><i class="fa-solid fa-trophy"></i> Partidas Registradas</h3>
+                        <h3><i class="fa-solid fa-trophy"></i> Mapas Registrados no Histórico</h3>
                         <div id="listaPartidas" class="admin-news-list">
                             <p class="loading-text">Carregando partidas...</p>
                         </div>
                     </section>
 
+                </div>
+            </div>
+
+            <!-- ================= ABA 4: PLACAR DE SÉRIES / RESULTADOS DE HOJE (EXIBE NO INDEX) ================= -->
+            <div id="tabResultadosHoje" class="tab-content" style="display: none;">
+                <div class="admin-grid">
+                    <section class="admin-card" style="grid-column: span 2;">
+                        <h3><i class="fa-solid fa-star" style="color:gold;"></i> Gerenciar Placar de Séries / Resultados de Hoje (Index)</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                            Cadastre aqui o placar manual da série (ex: <strong>Capangas 2 x 0 Cunil</strong>) para aparecer diretamente nos cards do início do site (Index).
+                        </p>
+                        <form id="formResultadoHoje" class="admin-form">
+                            <input type="hidden" id="editResultadoHojeId" value="">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="resTimeA">Time 1 (Casa)</label>
+                                    <select id="resTimeA" required>
+                                        <option value="">Selecione o time...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="resMapasA">Mapas Vencidos (Time 1)</label>
+                                    <input type="number" id="resMapasA" min="0" placeholder="Ex: 2" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="resMapasB">Mapas Vencidos (Time 2)</label>
+                                    <input type="number" id="resMapasB" min="0" placeholder="Ex: 0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="resTimeB">Time 2 (Visitante)</label>
+                                    <select id="resTimeB" required>
+                                        <option value="">Selecione o time...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="resStatus">Fase / Status da Série</label>
+                                    <input type="text" id="resStatus" placeholder="Ex: BO3 · FINALIZADO ou BO3 · EM ANDAMENTO" value="BO3 · FINALIZADO">
+                                </div>
+                                <div class="form-group">
+                                    <label for="resData">Data do Confronto</label>
+                                    <input type="text" id="resData" placeholder="Ex: Hoje ou 07/11/2026">
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" id="btnSalvarResultadoHoje" class="btn-submit" style="flex: 2;"><i class="fa-solid fa-floppy-disk"></i> Salvar Placar da Série no Index</button>
+                                <button type="button" id="btnCancelarEdicaoResultado" style="display: none; flex: 1; background: #31313c; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-weight: 700; cursor: pointer;">Cancelar</button>
+                            </div>
+                            <p id="msgResultadoHojeStatus" class="form-status" style="margin-top: 0.8rem; font-size: 0.85rem; font-weight: 700;"></p>
+                        </form>
+                    </section>
+
+                    <section class="admin-card" style="grid-column: span 2;">
+                        <h3><i class="fa-solid fa-list-check"></i> Placares de Séries Cadastrados</h3>
+                        <div id="listaResultadosHojeAdmin" class="admin-news-list">
+                            <p class="loading-text">Carregando placares do index...</p>
+                        </div>
+                    </section>
                 </div>
             </div>
 
@@ -507,7 +570,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, setDoc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3g6QE7YBg0vEAYoCoZa4lI3hc2_C-J4Y",
@@ -524,6 +587,37 @@
         const db = getFirestore(app);
 
         let timesCadastradosCache = {};
+        let jogadoresCadastradosCache = [];
+
+        // LISTA COMPLETA DE TODOS OS CAMPEÕES DO LOL EM ORDEM ALFABÉTICA
+        const todosCampeoesLoL = [
+            "Aatrox", "Ahri", "Akali", "Akshan", "Alistar", "Ambessa", "Amumu", "Anivia", "Annie", "Aphelios", "Ashe", "Aurelion Sol", "Aurora", "Azir",
+            "Bard", "Bel'Veth", "Blitzcrank", "Brand", "Braum", "Briar",
+            "Caitlyn", "Camille", "Cassiopeia", "Cho'Gath", "Corki",
+            "Darius", "Diana", "Dr. Mundo", "Draven",
+            "Ekko", "Elise", "Evelynn", "Ezreal",
+            "Fiddlesticks", "Fiora", "Fizz",
+            "Galio", "Gangplank", "Garen", "Gnar", "Gragas", "Graves", "Gwen",
+            "Hecarim", "Heimerdinger", "Hwei",
+            "Illaoi", "Irelia", "Ivern",
+            "Janna", "Jarvan IV", "Jax", "Jayce", "Jhin", "Jinx", "K'Sante",
+            "Kai'Sa", "Kalista", "Karma", "Karthus", "Kassadin", "Katarina", "Kayle", "Kayn", "Kennen", "Kha'Zix", "Kindred", "Kled", "Kog'Maw",
+            "Leblanc", "Lee Sin", "Leona", "Lillia", "Lissandra", "Lucian", "Lulu", "Lux",
+            "Malphite", "Malzahar", "Maokai", "Master Yi", "Milio", "Miss Fortune", "Wukong", "Mordekaiser", "Morgana", "Naafiri",
+            "Nami", "Nasus", "Nautilus", "Neeko", "Nidalee", "Nilah", "Nocturne", "Nunu & Willump",
+            "Olaf", "Orianna", "Ornn",
+            "Pantheon", "Poppy", "Pyke",
+            "Qiyana", "Quinn",
+            "Rakan", "Rammus", "Rek'Sai", "Rell", "Renata Glasc", "Renekton", "Rengar", "Riven", "Rumble", "Ryze",
+            "Samira", "Sejuani", "Senna", "Seraphine", "Sett", "Shaco", "Shen", "Shyvana", "Singed", "Sion", "Sivir", "Skarner", "Smolder", "Sona", "Soraka", "Swain", "Sylas", "Syndra", "Tahm Kench",
+            "Taliyah", "Talon", "Taric", "Teemo", "Thresh", "Tristana", "Trundle", "Tryndamere", "Twisted Fate", "Twitch",
+            "Udyr", "Urgot",
+            "Varus", "Vayne", "Veigar", "Vel'Koz", "Vex", "Vi", "Viego", "Viktor", "Vladimir", "Volibear",
+            "Warwick",
+            "Xayah", "Xerath", "Xin Zhao",
+            "Yasuo", "Yone", "Yorick", "Yuumi",
+            "Zac", "Zed", "Zeri", "Ziggs", "Zilean", "Zoe", "Zyra"
+        ];
 
         const tabs = document.querySelectorAll('.tab-btn');
         tabs.forEach(tab => {
@@ -541,10 +635,12 @@
                 document.getElementById('adminDashboard').style.display = 'block';
                 document.getElementById('btnLogout').style.display = 'inline-flex';
                 await carregarSelectsTimes();
+                await carregarCacheJogadores();
                 carregarNoticias();
                 carregarTimesAdmin();
                 carregarConfrontosAdmin();
                 carregarPartidas();
+                carregarResultadosHojeAdmin();
             } else {
                 document.getElementById('loginSection').style.display = 'flex';
                 document.getElementById('adminDashboard').style.display = 'none';
@@ -563,23 +659,74 @@
 
         document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
-        // CARREGAR TIMES CADASTRADOS NOS SELECTS DO CONFRONTO
+        // CARREGAR TIMES CADASTRADOS EM TODOS OS SELECTS DO PAINEL
         async function carregarSelectsTimes() {
-            const selectA = document.getElementById('confTimeA');
-            const selectB = document.getElementById('confTimeB');
+            const selects = [
+                document.getElementById('confTimeA'),
+                document.getElementById('confTimeB'),
+                document.getElementById('timeAzul'),
+                document.getElementById('timeVermelho'),
+                document.getElementById('vencedorMapa'),
+                document.getElementById('resTimeA'),
+                document.getElementById('resTimeB')
+            ];
+
             try {
                 const snap = await getDocs(collection(db, "tabela"));
-                selectA.innerHTML = '<option value="">Selecione o time...</option>';
-                selectB.innerHTML = '<option value="">Selecione o time...</option>';
-
-                snap.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const nome = data.nome || docSnap.id;
-                    selectA.innerHTML += `<option value="${nome}">${nome}</option>`;
-                    selectB.innerHTML += `<option value="${nome}">${nome}</option>`;
+                
+                selects.forEach(select => {
+                    if (!select) return;
+                    const valorAtual = select.value;
+                    select.innerHTML = '<option value="">Selecione o time...</option>';
+                    snap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const nome = data.nome || docSnap.id;
+                        select.innerHTML += `<option value="${nome}">${nome}</option>`;
+                    });
+                    if (valorAtual) select.value = valorAtual;
                 });
             } catch (err) {
-                console.error("Erro ao carregar times para o select:", err);
+                console.error("Erro ao carregar times para os selects:", err);
+            }
+        }
+
+        // Atualizar options do select de vencedor do mapa dinamicamente
+        function atualizarSelectVencedorMapa() {
+            const timeA = document.getElementById('timeAzul').value;
+            const timeB = document.getElementById('timeVermelho').value;
+            const selectVencedor = document.getElementById('vencedorMapa');
+            const valorAtual = selectVencedor.value;
+
+            selectVencedor.innerHTML = '<option value="">Selecione quem venceu o mapa...</option>';
+            if (timeA) selectVencedor.innerHTML += `<option value="${timeA}">${timeA} (Time Azul)</option>`;
+            if (timeB) selectVencedor.innerHTML += `<option value="${timeB}">${timeB} (Time Vermelho)</option>`;
+
+            if (valorAtual && (valorAtual === timeA || valorAtual === timeB)) {
+                selectVencedor.value = valorAtual;
+            }
+        }
+
+        document.getElementById('timeAzul').addEventListener('change', atualizarSelectVencedorMapa);
+        document.getElementById('timeVermelho').addEventListener('change', atualizarSelectVencedorMapa);
+
+        // BUSCA TODOS OS JOGADORES DOS PLANTÉIS CADASTRADOS PARA O SELECT DE JOGADORES
+        async function carregarCacheJogadores() {
+            jogadoresCadastradosCache = [];
+            try {
+                const snap = await getDocs(collection(db, "tabela"));
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.plantel && Array.isArray(data.plantel)) {
+                        data.plantel.forEach(j => {
+                            if (j.nick && !jogadoresCadastradosCache.includes(j.nick)) {
+                                jogadoresCadastradosCache.push(j.nick);
+                            }
+                        });
+                    }
+                });
+                jogadoresCadastradosCache.sort();
+            } catch (err) {
+                console.error("Erro ao carregar cache de jogadores:", err);
             }
         }
 
@@ -779,6 +926,7 @@
                 nomeTimeInput.disabled = false;
                 carregarTimesAdmin();
                 await carregarSelectsTimes();
+                await carregarCacheJogadores();
             } catch (err) {
                 console.error(err);
                 msg.style.color = "#ff5252";
@@ -839,6 +987,7 @@
                             await deleteDoc(doc(db, "tabela", nomeTime));
                             carregarTimesAdmin();
                             await carregarSelectsTimes();
+                            await carregarCacheJogadores();
                         }
                     });
                 });
@@ -872,12 +1021,38 @@
             msg.innerText = `✏️ Editando time "${nomeTime}". Altere os dados abaixo e clique em Salvar.`;
         }
 
-        function adicionarLinhaJogador(nick = '', campeao = '', k = 0, d = 0, a = 0) {
+        // ADICIONA LINHA NA TABELA DE PARTIDAS USANDO SELECT DINÂMICO DE JOGADORES E CAMPEÕES DO LOL
+        async function adicionarLinhaJogador(nickSelecionado = '', campeaoSelecionado = '', k = 0, d = 0, a = 0) {
+            if (jogadoresCadastradosCache.length === 0) {
+                await carregarCacheJogadores();
+            }
+
             const tbody = document.getElementById('tabelaJogadoresInput');
             const tr = document.createElement('tr');
+
+            let opcoesNicks = '<option value="">Selecione o jogador...</option>';
+            jogadoresCadastradosCache.forEach(nick => {
+                const selected = (nick.toLowerCase() === nickSelecionado.toLowerCase()) ? 'selected' : '';
+                opcoesNicks += `<option value="${nick}" ${selected}>${nick}</option>`;
+            });
+
+            let opcoesCampeoes = '<option value="">Selecione o campeão...</option>';
+            todosCampeoesLoL.forEach(champ => {
+                const selected = (champ.toLowerCase() === campeaoSelecionado.toLowerCase()) ? 'selected' : '';
+                opcoesCampeoes += `<option value="${champ}" ${selected}>${champ}</option>`;
+            });
+
             tr.innerHTML = `
-                <td><input type="text" class="input-nick" placeholder="Nick" value="${nick}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-                <td><input type="text" class="input-campeao" placeholder="Campeão" value="${campeao}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;"></td>
+                <td>
+                    <select class="input-nick" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
+                        ${opcoesNicks}
+                    </select>
+                </td>
+                <td>
+                    <select class="input-campeao" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
+                        ${opcoesCampeoes}
+                    </select>
+                </td>
                 <td class="text-right"><input type="number" class="input-k" min="0" value="${k}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
                 <td class="text-right"><input type="number" class="input-d" min="0" value="${d}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
                 <td class="text-right"><input type="number" class="input-a" min="0" value="${a}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
@@ -887,42 +1062,54 @@
             tbody.appendChild(tr);
         }
 
-        document.getElementById('btnAddJogador').addEventListener('click', () => adicionarLinhaJogador());
+        document.getElementById('btnAddJogador').addEventListener('click', async () => {
+            await adicionarLinhaJogador();
+        });
 
+        // BOTÃO PROCESSAR PRINT (GERA AS 10 LINHAS LIMPAS DA PARTIDA)
         document.getElementById('btnProcessarPrint').addEventListener('click', async () => {
+            const fileInput = document.getElementById('printEndGame');
             const status = document.getElementById('ocrStatus');
+
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert("Por favor, selecione a imagem do fim de jogo primeiro!");
+                return;
+            }
+
             status.style.color = "#ffb74d";
-            status.innerText = "⏳ Extraindo tempo, bans de cada time e estatísticas...";
+            status.innerText = "⏳ Lendo duração da partida e preparando tabela...";
 
             try {
+                const file = fileInput.files[0];
+                const result = await Tesseract.recognize(file, 'por+eng');
+                const textoExtraido = result.data.text;
+
+                const matchTempo = textoExtraido.match(/\b(\d{2}:\d{2})\b/);
+                if (matchTempo) {
+                    document.getElementById('duracaoPartida').value = matchTempo[1];
+                }
+
+                await carregarCacheJogadores();
                 const tbody = document.getElementById('tabelaJogadoresInput');
                 tbody.innerHTML = '';
 
-                const dadosPrint = [
-                    { nick: "G5 Iguazu", champ: "Ornn", k: 1, d: 1, a: 15 },
-                    { nick: "Sloth", champ: "Viego", k: 13, d: 6, a: 9 },
-                    { nick: "Dydreyzi", champ: "Aurora", k: 4, d: 2, a: 13 },
-                    { nick: "grizou", champ: "Ezreal", k: 14, d: 3, a: 8 },
-                    { nick: "im cooking", champ: "Rakan", k: 2, d: 3, a: 22 },
-                    { nick: "Narguilão", champ: "Aphelios", k: 4, d: 9, a: 6 },
-                    { nick: "RED JP Animal", champ: "Amumu", k: 1, d: 7, a: 8 },
-                    { nick: "RED Fekz", champ: "Ahri", k: 6, d: 6, a: 3 },
-                    { nick: "RED Alê", champ: "Lulu", k: 3, d: 6, a: 9 },
-                    { nick: "RED Mecanico", champ: "Gragas", k: 1, d: 6, a: 4 }
-                ];
-
-                dadosPrint.forEach(p => adicionarLinhaJogador(p.nick, p.champ, p.k, p.d, p.a));
-                
-                document.getElementById('duracaoPartida').value = "23:16";
-                document.getElementById('bansTimeAzul').value = "Rengar, Aphelios, Sylas, Samira, Morgana";
-                document.getElementById('bansTimeVermelho').value = "Pyke, Pantheon, Zed, Qiyana, Nocturne";
+                for (let i = 0; i < 10; i++) {
+                    await adicionarLinhaJogador();
+                }
 
                 status.style.color = "#00e676";
-                status.innerText = "✓ Sucesso! Bans divididos por time e estatísticas carregadas!";
+                status.innerText = "✓ 10 linhas criadas! Escolha os jogadores, os campeões e preencha o KDA.";
+
             } catch (err) {
-                console.error(err);
+                console.error("Erro no OCR:", err);
                 status.style.color = "#ff5252";
-                status.innerText = "Erro ao processar imagem.";
+                status.innerText = "Erro ao ler a imagem. 10 linhas foram geradas para preenchimento.";
+                
+                const tbody = document.getElementById('tabelaJogadoresInput');
+                tbody.innerHTML = '';
+                for (let i = 0; i < 10; i++) {
+                    await adicionarLinhaJogador();
+                }
             }
         });
 
@@ -1000,40 +1187,67 @@
             }
         }
 
-        // SALVAR PARTIDA NO FIRESTORE
+        // SALVAR OU EDITAR PARTIDA (MAPA INDIVIDUAL)
         document.getElementById('formPartida').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvarPartida');
             btn.disabled = true;
 
+            const partidaIdEdit = document.getElementById('editPartidaId').value;
             const timeA = document.getElementById('timeAzul').value.trim();
             const timeB = document.getElementById('timeVermelho').value.trim();
-            const placarA = parseInt(document.getElementById('placarAzul').value);
-            const placarB = parseInt(document.getElementById('placarVermelho').value);
+            const placarA = parseInt(document.getElementById('placarAzul').value) || 0;
+            const placarB = parseInt(document.getElementById('placarVermelho').value) || 0;
+            const vencedor = document.getElementById('vencedorMapa').value.trim();
             const duracao = document.getElementById('duracaoPartida').value.trim() || '20:00';
 
-            const bansAzulRaw = document.getElementById('bansTimeAzul').value.trim();
-            const bansVermelhoRaw = document.getElementById('bansTimeVermelho').value.trim();
+            if (!timeA || !timeB) {
+                alert("Por favor, selecione ambos os times!");
+                btn.disabled = false;
+                return;
+            }
 
-            const listaBansAzul = bansAzulRaw ? bansAzulRaw.split(',').map(b => b.trim()) : [];
-            const listaBansVermelho = bansVermelhoRaw ? bansVermelhoRaw.split(',').map(b => b.trim()) : [];
+            if (timeA === timeB) {
+                alert("Os times azul e vermelho não podem ser iguais!");
+                btn.disabled = false;
+                return;
+            }
+
+            if (!vencedor) {
+                alert("Por favor, selecione o time que venceu este mapa!");
+                btn.disabled = false;
+                return;
+            }
 
             try {
-                await addDoc(collection(db, "partidas"), {
+                let partidaRefId = partidaIdEdit;
+
+                const dadosPartida = {
                     homeTeam: timeA,
                     awayTeam: timeB,
                     homeScore: placarA,
                     awayScore: placarB,
+                    vencedorMapa: vencedor,
                     duracao: duracao,
-                    bansAzul: listaBansAzul,
-                    bansVermelho: listaBansVermelho,
                     data: new Date().toLocaleDateString('pt-BR'),
                     createdAt: new Date()
-                });
+                };
 
-                await atualizarClassificacaoTime(timeA, placarA > placarB);
-                await atualizarClassificacaoTime(timeB, placarB > placarA);
+                if (partidaIdEdit) {
+                    await setDoc(doc(db, "partidas", partidaIdEdit), dadosPartida, { merge: true });
+                    
+                    // Apaga estatísticas de jogadores antigas para sobrescrever com as novas
+                    const qStatsAntigas = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", partidaIdEdit));
+                    const snapAntigas = await getDocs(qStatsAntigas);
+                    for (let sDoc of snapAntigas.docs) {
+                        await deleteDoc(doc(db, "estatisticas_jogadores", sDoc.id));
+                    }
+                } else {
+                    const docRef = await addDoc(collection(db, "partidas"), dadosPartida);
+                    partidaRefId = docRef.id;
+                }
 
+                // Salva as novas estatísticas individuais dos 10 jogadores no Firestore
                 const linhas = document.querySelectorAll('#tabelaJogadoresInput tr');
                 for (const linha of linhas) {
                     const nick = linha.querySelector('.input-nick').value.trim();
@@ -1044,61 +1258,44 @@
                     const d = parseInt(linha.querySelector('.input-d').value) || 0;
                     const a = parseInt(linha.querySelector('.input-a').value) || 0;
 
-                    const pRef = doc(db, "estatisticas_jogadores", nick);
+                    const statRef = doc(collection(db, "estatisticas_jogadores"));
                     const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
 
-                    await setDoc(pRef, { nick, campeao, abates: k, mortes: d, assistencias: a, kda: kdaCalc });
+                    await setDoc(statRef, {
+                        partidaId: partidaRefId,
+                        nick: nick,
+                        campeao: campeao,
+                        abates: k,
+                        mortes: d,
+                        assistencias: a,
+                        kda: kdaCalc,
+                        createdAt: new Date()
+                    });
                 }
-
-                const todosBans = [...listaBansAzul, ...listaBansVermelho];
-                for (const champBan of todosBans) {
-                    if (!champBan) continue;
-                    const bRef = doc(db, "estatisticas_bans", champBan);
-                    const bSnap = await getDoc(bRef);
-                    let qtd = 1;
-                    if (bSnap.exists()) qtd += bSnap.data().qtd || 0;
-                    await setDoc(bRef, { nome: champBan, qtd });
-                }
-
-                // Remove automático dos Próximos Confrontos se existir agendado
-                const confSnap = await getDocs(collection(db, "confrontos"));
-                confSnap.forEach(async (cDoc) => {
-                    const cData = cDoc.data();
-                    if ((cData.homeTeam.toLowerCase() === timeA.toLowerCase() && cData.awayTeam.toLowerCase() === timeB.toLowerCase()) ||
-                        (cData.homeTeam.toLowerCase() === timeB.toLowerCase() && cData.awayTeam.toLowerCase() === timeA.toLowerCase())) {
-                        await deleteDoc(doc(db, "confrontos", cDoc.id));
-                    }
-                });
 
                 document.getElementById('msgPartidaStatus').style.color = "#00e676";
-                document.getElementById('msgPartidaStatus').innerText = "✓ Partida salva! Removido dos próximos confrontos e histórico atualizado!";
-                document.getElementById('formPartida').reset();
-                document.getElementById('tabelaJogadoresInput').innerHTML = '';
+                document.getElementById('msgPartidaStatus').innerText = partidaIdEdit ? "✓ Mapa editado com sucesso!" : "✓ Mapa salvo com sucesso!";
+                limparFormPartida();
                 carregarPartidas();
             } catch (error) {
                 console.error(error);
                 document.getElementById('msgPartidaStatus').style.color = "#ff5252";
-                document.getElementById('msgPartidaStatus').innerText = "Erro ao salvar dados.";
+                document.getElementById('msgPartidaStatus').innerText = "Erro ao salvar mapa.";
             } finally {
                 btn.disabled = false;
             }
         });
 
-        async function atualizarClassificacaoTime(timeNome, venceu) {
-            const docRef = doc(db, "tabela", timeNome);
-            const docSnap = await getDoc(docRef);
-
-            let v = venceu ? 1 : 0;
-            let d = venceu ? 0 : 1;
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                v += data.vitorias || 0;
-                d += data.derrotas || 0;
-            }
-
-            await setDoc(docRef, { nome: timeNome, vitorias: v, derrotas: d, pontos: v * 3 }, { merge: true });
+        function limparFormPartida() {
+            document.getElementById('formPartida').reset();
+            document.getElementById('editPartidaId').value = '';
+            document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Print & Registro de Mapa';
+            document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Confirmar e Salvar Mapa';
+            document.getElementById('btnCancelarEdicaoPartida').style.display = 'none';
+            document.getElementById('tabelaJogadoresInput').innerHTML = '';
         }
+
+        document.getElementById('btnCancelarEdicaoPartida').addEventListener('click', limparFormPartida);
 
         async function carregarPartidas() {
             const list = document.getElementById('listaPartidas');
@@ -1108,7 +1305,7 @@
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
-                    list.innerHTML = '<p class="empty-text">Nenhuma partida registrada ainda.</p>';
+                    list.innerHTML = '<p class="empty-text">Nenhum mapa registrado ainda.</p>';
                     return;
                 }
 
@@ -1121,22 +1318,203 @@
                     item.className = 'admin-news-item';
                     item.innerHTML = `
                         <div class="item-info">
-                            <span class="item-tag">${d.data} · ⏱️ ${d.duracao || '20:00'}</span>
-                            <h4>${d.homeTeam} ${d.homeScore} x ${d.awayScore} ${d.awayTeam}</h4>
+                            <span class="item-tag">${d.data} · ⏱️ ${d.duracao || '20:00'} · 👑 Vencedor: ${d.vencedorMapa || 'N/A'}</span>
+                            <h4>${d.homeTeam} (${d.homeScore}) x (${d.awayScore}) ${d.awayTeam}</h4>
                         </div>
                         <div class="item-actions">
+                            <button class="btn-edit-partida" data-id="${id}" title="Editar Mapa"><i class="fa-solid fa-pen"></i></button>
                             <button class="btn-delete" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     `;
                     list.appendChild(item);
                 });
 
+                list.querySelectorAll('.btn-edit-partida').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        await carregarPartidaParaEdicao(id);
+                    });
+                });
+
                 list.querySelectorAll('.btn-delete').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const id = e.currentTarget.getAttribute('data-id');
-                        if (confirm("Deseja apagar esta partida do histórico?")) {
+                        if (confirm("Deseja apagar este mapa do histórico?")) {
                             await deleteDoc(doc(db, "partidas", id));
+                            
+                            // Remove estatísticas vinculadas
+                            const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", id));
+                            const snapStats = await getDocs(qStats);
+                            for (let docS of snapStats.docs) {
+                                await deleteDoc(doc(db, "estatisticas_jogadores", docS.id));
+                            }
+
                             carregarPartidas();
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function carregarPartidaParaEdicao(id) {
+            try {
+                const docSnap = await getDoc(doc(db, "partidas", id));
+                if (!docSnap.exists()) return;
+
+                const d = docSnap.data();
+                document.getElementById('editPartidaId').value = id;
+                document.getElementById('timeAzul').value = d.homeTeam || '';
+                document.getElementById('timeVermelho').value = d.awayTeam || '';
+                atualizarSelectVencedorMapa();
+                document.getElementById('vencedorMapa').value = d.vencedorMapa || '';
+                document.getElementById('placarAzul').value = d.homeScore || 0;
+                document.getElementById('placarVermelho').value = d.awayScore || 0;
+                document.getElementById('duracaoPartida').value = d.duracao || '20:00';
+
+                // Carrega os 10 KDAs salvos no Firestore
+                const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", id));
+                const snapStats = await getDocs(qStats);
+
+                const tbody = document.getElementById('tabelaJogadoresInput');
+                tbody.innerHTML = '';
+
+                for (let sDoc of snapStats.docs) {
+                    const st = sDoc.data();
+                    await adicionarLinhaJogador(st.nick, st.campeao, st.abates, st.mortes, st.assistencias);
+                }
+
+                document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#ffb74d;"></i> Editando Registro do Mapa';
+                document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações do Mapa';
+                document.getElementById('btnCancelarEdicaoPartida').style.display = 'block';
+
+                document.querySelector('.tab-btn[data-tab="tabPartidas"]').click();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                console.error("Erro ao carregar mapa para edição:", err);
+            }
+        }
+
+        // ================= SISTEMA DE PLACAR DE SÉRIES / INDEX (SÉRIES MD3 / MD5 DE HOJE) =================
+        document.getElementById('formResultadoHoje').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarResultadoHoje');
+            btn.disabled = true;
+
+            const resId = document.getElementById('editResultadoHojeId').value;
+            const timeA = document.getElementById('resTimeA').value;
+            const timeB = document.getElementById('resTimeB').value;
+            const mapasA = parseInt(document.getElementById('resMapasA').value) || 0;
+            const mapasB = parseInt(document.getElementById('resMapasB').value) || 0;
+            const statusFase = document.getElementById('resStatus').value.trim() || 'BO3 · FINALIZADO';
+            const dataConf = document.getElementById('resData').value.trim() || 'Hoje';
+
+            if (timeA === timeB) {
+                alert("Os times da série não podem ser iguais!");
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                const dadosSerie = {
+                    homeTeam: timeA,
+                    awayTeam: timeB,
+                    homeScore: mapasA,
+                    awayScore: mapasB,
+                    status: statusFase,
+                    data: dataConf,
+                    createdAt: new Date()
+                };
+
+                if (resId) {
+                    await setDoc(doc(db, "resultados_hoje", resId), dadosSerie, { merge: true });
+                } else {
+                    await addDoc(collection(db, "resultados_hoje"), dadosSerie);
+                }
+
+                document.getElementById('msgResultadoHojeStatus').style.color = "#00e676";
+                document.getElementById('msgResultadoHojeStatus').innerText = "✓ Placar da série salvo e sincronizado com a tela inicial!";
+                limparFormResultadoHoje();
+                carregarResultadosHojeAdmin();
+            } catch (err) {
+                console.error(err);
+                document.getElementById('msgResultadoHojeStatus').style.color = "#ff5252";
+                document.getElementById('msgResultadoHojeStatus').innerText = "Erro ao salvar placar da série.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        function limparFormResultadoHoje() {
+            document.getElementById('formResultadoHoje').reset();
+            document.getElementById('editResultadoHojeId').value = '';
+            document.getElementById('btnSalvarResultadoHoje').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Placar da Série no Index';
+            document.getElementById('btnCancelarEdicaoResultado').style.display = 'none';
+        }
+
+        document.getElementById('btnCancelarEdicaoResultado').addEventListener('click', limparFormResultadoHoje);
+
+        async function carregarResultadosHojeAdmin() {
+            const list = document.getElementById('listaResultadosHojeAdmin');
+            list.innerHTML = '<p class="loading-text">Carregando placares do index...</p>';
+            try {
+                const q = query(collection(db, "resultados_hoje"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    list.innerHTML = '<p class="empty-text">Nenhum resultado de série cadastrado para o index.</p>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const id = docSnap.id;
+
+                    const item = document.createElement('div');
+                    item.className = 'admin-news-item';
+                    item.innerHTML = `
+                        <div class="item-info">
+                            <span class="item-tag">${d.status || 'BO3'} · ${d.data || 'Hoje'}</span>
+                            <h4>${d.homeTeam} ${d.homeScore} x ${d.awayScore} ${d.awayTeam}</h4>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-edit-res" data-id="${id}" title="Editar Placar"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-delete-res" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                list.querySelectorAll('.btn-edit-res').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        const docSnap = await getDoc(doc(db, "resultados_hoje", id));
+                        if (docSnap.exists()) {
+                            const d = docSnap.data();
+                            document.getElementById('editResultadoHojeId').value = id;
+                            document.getElementById('resTimeA').value = d.homeTeam || '';
+                            document.getElementById('resTimeB').value = d.awayTeam || '';
+                            document.getElementById('resMapasA').value = d.homeScore || 0;
+                            document.getElementById('resMapasB').value = d.awayScore || 0;
+                            document.getElementById('resStatus').value = d.status || 'BO3 · FINALIZADO';
+                            document.getElementById('resData').value = d.data || 'Hoje';
+
+                            document.getElementById('btnSalvarResultadoHoje').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Atualizar Placar no Index';
+                            document.getElementById('btnCancelarEdicaoResultado').style.display = 'block';
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    });
+                });
+
+                list.querySelectorAll('.btn-delete-res').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        if (confirm("Deseja apagar este placar do index?")) {
+                            await deleteDoc(doc(db, "resultados_hoje", id));
+                            carregarResultadosHojeAdmin();
                         }
                     });
                 });

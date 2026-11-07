@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Configurações PWA -->
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#e50914">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#e50914">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
 
@@ -27,11 +27,10 @@
                 <a href="partidas.html">Partidas</a>
                 <a href="tabela.html">Tabela</a>
                 <a href="estatisticas.html" class="active">Estatísticas</a>
-                <a href="noticia.html">Notícias</a>
+                <a href="noticias.html">Notícias</a>
                 <a href="hall.html">Hall of Canudos</a>
                 <a href="regras.html">Regras</a>
             </nav>
-            <!-- ADICIONE ESTE BOTÃO CASO ELE ESTEJA FALTANDO -->
             <div class="menu-toggle" id="menuToggle">
                 <i class="fa-solid fa-bars"></i>
             </div>
@@ -47,7 +46,7 @@
             </div>
         </div>
 
-        <!-- CARDS DE MÉTRICAS GERAIS (ESTILO CBLOW) -->
+        <!-- CARDS DE MÉTRICAS GERAIS -->
         <div class="admin-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
             <div class="sidebar-card text-center">
                 <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Jogos</span>
@@ -73,14 +72,14 @@
             </div>
         </div>
 
-        <!-- LAYOUT DE DUAS COLUNAS: RANKING DE JOGADORES + POPULARIDADE DE CAMPEÕES -->
+        <!-- LAYOUT DE DUAS COLUNAS: RANKING DE JOGADORES + CAMPEÕES MAIS ESCOLHIDOS -->
         <div class="dashboard-grid">
             
             <!-- RANKING DE JOGADORES -->
             <section class="sidebar-card">
                 <div class="section-title-bar">
                     <h2><i class="fa-solid fa-trophy"></i> RANKING DE JOGADORES</h2>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">Total na temporada</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Consolidado</span>
                 </div>
 
                 <!-- CAMPO DE BUSCA -->
@@ -90,31 +89,41 @@
 
                 <!-- FILTROS POR ABA -->
                 <div class="admin-tabs" style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
-                    <button class="tab-btn active filter-btn" data-filter="abates">Abates</button>
+                    <button class="tab-btn active filter-btn" data-filter="kda">KDA</button>
+                    <button class="tab-btn filter-btn" data-filter="abates">Abates</button>
                     <button class="tab-btn filter-btn" data-filter="assistencias">Assistências</button>
-                    <button class="tab-btn filter-btn" data-filter="kda">KDA</button>
                     <button class="tab-btn filter-btn" data-filter="mortes">Mortes</button>
                 </div>
 
-                <table class="mini-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Jogador</th>
-                            <th class="text-right">Campeão Favorito</th>
-                            <th class="text-right" id="thMetricLabel">Abates</th>
-                        </tr>
-                    </thead>
-                    <tbody id="statsBody">
-                        <tr><td colspan="4" class="loading-text">Carregando dados...</td></tr>
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="mini-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="font-size: 0.75rem; color: var(--text-muted); text-align: left;">
+                                <th style="padding: 0.6rem;">#</th>
+                                <th style="padding: 0.6rem;">Jogador</th>
+                                <th style="padding: 0.6rem;">Campeão Favorito</th>
+                                <th class="text-center" style="padding: 0.6rem;">K / D / A</th>
+                                <th class="text-right" style="padding: 0.6rem;" id="thMetricLabel">KDA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsBody">
+                            <tr><td colspan="5" class="loading-text">Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BOTÃO VER MAIS / VER MENOS JOGADORES -->
+                <div id="containerBtnVerMaisJogadores" class="text-center" style="margin-top: 1.2rem; display: none;">
+                    <button id="btnVerMaisJogadores" style="background: #232732; border: 1px solid var(--border-color); color: #fff; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+                        <i class="fa-solid fa-chevron-down"></i> Ver mais jogadores
+                    </button>
+                </div>
             </section>
 
-            <!-- CAMPEÕES MAIS JOGADOS & BANIDOS -->
+            <!-- CAMPEÕES MAIS ESCOLHIDOS (PICKS) -->
             <aside class="sidebar-card">
                 <div class="section-title-bar">
-                    <h2><i class="fa-solid fa-shield-halved"></i> CAMPEÕES & BANS</h2>
+                    <h2><i class="fa-solid fa-shield-halved"></i> CAMPEÕES MAIS ESCOLHIDOS (PICKS)</h2>
                 </div>
 
                 <!-- CAMPO DE BUSCA CAMPEÕES -->
@@ -122,18 +131,26 @@
                     <input type="text" id="inputSearchChamp" placeholder="Buscar campeão..." style="width: 100%; padding: 0.6rem 0.8rem; background: var(--bg-main); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 0.85rem; outline: none;">
                 </div>
 
-                <table class="mini-table">
-                    <thead>
-                        <tr>
-                            <th>Campeão</th>
-                            <th class="text-right">Picks</th>
-                            <th class="text-right">Bans</th>
-                        </tr>
-                    </thead>
-                    <tbody id="championsBody">
-                        <tr><td colspan="3" class="loading-text">Carregando campeões...</td></tr>
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="mini-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="font-size: 0.75rem; color: var(--text-muted); text-align: left;">
+                                <th style="padding: 0.6rem;">Campeão</th>
+                                <th class="text-right" style="padding: 0.6rem;">Total de Escolhas (Picks)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="championsBody">
+                            <tr><td colspan="2" class="loading-text">Carregando campeões...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BOTÃO VER MAIS / VER MENOS CAMPEÕES -->
+                <div id="containerBtnVerMaisChamps" class="text-center" style="margin-top: 1.2rem; display: none;">
+                    <button id="btnVerMaisChamps" style="background: #232732; border: 1px solid var(--border-color); color: #fff; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+                        <i class="fa-solid fa-chevron-down"></i> Ver mais campeões
+                    </button>
+                </div>
             </aside>
 
         </div>
@@ -162,12 +179,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let jogadoresData = [];
+        let jogadoresConsolidados = [];
         let campeoesPicks = {};
-        let campeoesBans = {};
-        let filtroAtual = 'abates';
+        let filtroAtual = 'kda';
+        let expandidoJogadores = false;
+        let expandidoChamps = false;
 
-        // Converte string mm:ss para segundos totais
         function tempoParaSegundos(tempoStr) {
             if (!tempoStr || !tempoStr.includes(':')) return 1200;
             const partes = tempoStr.split(':');
@@ -176,7 +193,7 @@
 
         async function carregarDadosCompletos() {
             try {
-                // 1. Busca Partidas para métricas de tempo
+                // 1. Partidas para métricas gerais de tempo
                 const snapPartidas = await getDocs(collection(db, "partidas"));
                 const totalJogos = snapPartidas.size;
                 document.getElementById('metricJogos').innerText = totalJogos;
@@ -202,32 +219,85 @@
                     document.getElementById('metricJogoCurto').innerHTML = `<h3 style="font-size:1.1rem; color:#fff; font-weight:900;">${jogoCurto.tempo}</h3><small style="color:var(--text-muted);">${jogoCurto.timeA} x ${jogoCurto.timeB}</small>`;
                 }
 
-                // 2. Busca Bans do Banco
-                const snapBans = await getDocs(collection(db, "estatisticas_bans"));
-                campeoesBans = {};
-                snapBans.forEach(docSnap => {
-                    const b = docSnap.data();
-                    campeoesBans[b.nome] = b.qtd || 0;
-                });
-
-                // 3. Busca Estatísticas dos Jogadores
+                // 2. Estatísticas de jogadores individuais (agrupamento e consolidação por nick)
                 const snapJogadores = await getDocs(collection(db, "estatisticas_jogadores"));
-                jogadoresData = [];
+                const mapJogadoresBrutos = {};
                 campeoesPicks = {};
                 let totalAbatesLiga = 0;
 
                 snapJogadores.forEach(docSnap => {
                     const d = docSnap.data();
-                    jogadoresData.push(d);
+                    const nick = (d.nick || 'Desconhecido').trim();
+                    const nickKey = nick.toLowerCase();
+                    const champ = d.campeao && d.campeao !== 'Geral' ? d.campeao : 'Geral';
+                    const k = d.abates || 0;
+                    const m = d.mortes || 0;
+                    const a = d.assistencias || 0;
+                    const kdaPartida = d.kda || (m === 0 ? k + a : parseFloat(((k + a) / m).toFixed(2)));
 
-                    totalAbatesLiga += (d.abates || 0);
+                    totalAbatesLiga += k;
 
-                    if (d.campeao && d.campeao !== 'Geral') {
-                        campeoesPicks[d.campeao] = (campeoesPicks[d.campeao] || 0) + 1;
+                    if (champ !== 'Geral') {
+                        campeoesPicks[champ] = (campeoesPicks[champ] || 0) + 1;
+                    }
+
+                    if (!mapJogadoresBrutos[nickKey]) {
+                        mapJogadoresBrutos[nickKey] = {
+                            nick: nick,
+                            partidasJogadas: 0,
+                            abates: 0,
+                            mortes: 0,
+                            assistencias: 0,
+                            somaKda: 0,
+                            campeoesMap: {} // { 'Ahri': { totalKda: 12.5, count: 2, melhorKda: 8.0 } }
+                        };
+                    }
+
+                    const jObj = mapJogadoresBrutos[nickKey];
+                    jObj.partidasJogadas++;
+                    jObj.abates += k;
+                    jObj.mortes += m;
+                    jObj.assistencias += a;
+                    jObj.somaKda += kdaPartida;
+
+                    if (!jObj.campeoesMap[champ]) {
+                        jObj.campeoesMap[champ] = { count: 0, melhorKda: 0 };
+                    }
+                    jObj.campeoesMap[champ].count++;
+                    if (kdaPartida > jObj.campeoesMap[champ].melhorKda) {
+                        jObj.campeoesMap[champ].melhorKda = kdaPartida;
                     }
                 });
 
                 document.getElementById('metricAbates').innerText = totalAbatesLiga;
+
+                // Constrói o array final consolidado e define o Campeão Favorito (com base no melhor KDA ou mais jogado)
+                jogadoresConsolidados = Object.keys(mapJogadoresBrutos).map(key => {
+                    const j = mapJogadoresBrutos[key];
+                    const mediaKda = j.partidasJogadas > 0 ? parseFloat((j.somaKda / j.partidasJogadas).toFixed(2)) : 0.00;
+
+                    // Encontra o campeão favorito: maior KDA ou mais jogado
+                    let champFavorito = 'Geral';
+                    let melhorScoreChamp = -1;
+                    Object.keys(j.campeoesMap).forEach(c => {
+                        const info = j.campeoesMap[c];
+                        // Prioriza campeão com melhor KDA, se empatar, mais jogado
+                        const score = info.melhorKda * 100 + info.count;
+                        if (score > melhorScoreChamp) {
+                            melhorScoreChamp = score;
+                            champFavorito = c;
+                        }
+                    });
+
+                    return {
+                        nick: j.nick,
+                        campeaoFavorito: champFavorito,
+                        abates: j.abates,
+                        mortes: j.mortes,
+                        assistencias: j.assistencias,
+                        kda: mediaKda
+                    };
+                });
 
                 renderizarRanking();
                 renderizarCampeoes();
@@ -242,30 +312,50 @@
             const searchVal = document.getElementById('inputSearchPlayer').value.toLowerCase().trim();
             document.getElementById('thMetricLabel').innerText = filtroAtual.toUpperCase();
 
-            let listaFiltrada = jogadoresData.filter(p => 
+            let listaFiltrada = jogadoresConsolidados.filter(p => 
                 (p.nick && p.nick.toLowerCase().includes(searchVal)) || 
-                (p.campeao && p.campeao.toLowerCase().includes(searchVal))
+                (p.campeaoFavorito && p.campeaoFavorito.toLowerCase().includes(searchVal))
             );
 
-            listaFiltrada.sort((a, b) => (b[filtroAtual] || 0) - (a[filtroAtual] || 0));
+            // Ordenação conforme aba ativa
+            listaFiltrada.sort((a, b) => {
+                if (filtroAtual === 'mortes') {
+                    return (a[filtroAtual] || 0) - (b[filtroAtual] || 0); // Menor morte primeiro ou maior? Geralmente maior ou menor, mantemos decrescente exceto se especificado
+                }
+                return (b[filtroAtual] || 0) - (a[filtroAtual] || 0);
+            });
 
-            if (listaFiltrada.length === 0) {
-                body.innerHTML = '<tr><td colspan="4" class="empty-text">Nenhum jogador encontrado.</td></tr>';
+            const containerBtn = document.getElementById('containerBtnVerMaisJogadores');
+            const btn = document.getElementById('btnVerMaisJogadores');
+
+            if (listaFiltrada.length > 10) {
+                containerBtn.style.display = 'block';
+                btn.innerHTML = expandidoJogadores ? '<i class="fa-solid fa-chevron-up"></i> Ver menos' : `<i class="fa-solid fa-chevron-down"></i> Ver mais jogadores (${listaFiltrada.length - 10} restantes)`;
+            } else {
+                containerBtn.style.display = 'none';
+            }
+
+            const listaExibicao = expandidoJogadores ? listaFiltrada : listaFiltrada.slice(0, 10);
+
+            if (listaExibicao.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="empty-text">Nenhum jogador encontrado.</td></tr>';
                 return;
             }
 
             body.innerHTML = '';
             let pos = 1;
 
-            listaFiltrada.forEach(p => {
+            listaExibicao.forEach(p => {
                 const tr = document.createElement('tr');
-                let valDisplay = p[filtroAtual] || 0;
+                let valDisplay = p[filtroAtual];
+                if (filtroAtual === 'kda') valDisplay = valDisplay.toFixed(2);
 
                 tr.innerHTML = `
-                    <td class="pos">${pos}</td>
-                    <td><strong>${p.nick}</strong></td>
-                    <td class="text-right" style="color:var(--text-muted);">${p.campeao || '—'}</td>
-                    <td class="text-right bold" style="color:var(--red-primary);">${valDisplay}</td>
+                    <td style="padding: 0.6rem;" class="pos">${pos}</td>
+                    <td style="padding: 0.6rem;"><strong><a href="detalhes-jogador.html?nick=${encodeURIComponent(p.nick)}" style="color:#fff; text-decoration:none;">${p.nick}</a></strong></td>
+                    <td style="padding: 0.6rem; color:var(--text-muted);">${p.campeaoFavorito}</td>
+                    <td style="padding: 0.6rem;" class="text-center"><strong>${p.abates}</strong> / <span style="color:#ff5252;">${p.mortes}</span> / ${p.assistencias}</td>
+                    <td style="padding: 0.6rem;" class="text-right bold" style="color:var(--red-primary);">${valDisplay}</td>
                 `;
                 body.appendChild(tr);
                 pos++;
@@ -276,46 +366,70 @@
             const body = document.getElementById('championsBody');
             const searchVal = document.getElementById('inputSearchChamp').value.toLowerCase().trim();
 
-            const todosCampeoesSet = new Set([...Object.keys(campeoesPicks), ...Object.keys(campeoesBans)]);
-            let listaCamp = Array.from(todosCampeoesSet)
+            let listaCamp = Object.keys(campeoesPicks)
                 .map(nome => ({
                     nome,
-                    picks: campeoesPicks[nome] || 0,
-                    bans: campeoesBans[nome] || 0
+                    picks: campeoesPicks[nome]
                 }))
                 .filter(c => c.nome.toLowerCase().includes(searchVal));
 
-            listaCamp.sort((a, b) => (b.picks + b.bans) - (a.picks + a.bans));
+            listaCamp.sort((a, b) => b.picks - a.picks);
 
-            if (listaCamp.length === 0) {
-                body.innerHTML = '<tr><td colspan="3" class="empty-text">Nenhum campeão registrado.</td></tr>';
+            const containerBtn = document.getElementById('containerBtnVerMaisChamps');
+            const btn = document.getElementById('btnVerMaisChamps');
+
+            if (listaCamp.length > 10) {
+                containerBtn.style.display = 'block';
+                btn.innerHTML = expandidoChamps ? '<i class="fa-solid fa-chevron-up"></i> Ver menos' : `<i class="fa-solid fa-chevron-down"></i> Ver mais campeões (${listaCamp.length - 10} restantes)`;
+            } else {
+                containerBtn.style.display = 'none';
+            }
+
+            const listaExibicao = expandidoChamps ? listaCamp : listaCamp.slice(0, 10);
+
+            if (listaExibicao.length === 0) {
+                body.innerHTML = '<tr><td colspan="2" class="empty-text">Nenhum campeão registrado.</td></tr>';
                 return;
             }
 
             body.innerHTML = '';
-            listaCamp.forEach(c => {
+            listaExibicao.forEach(c => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong>${c.nome}</strong></td>
-                    <td class="text-right bold" style="color:#fff;">${c.picks}</td>
-                    <td class="text-right bold" style="color:var(--red-primary);">${c.bans}</td>
+                    <td style="padding: 0.6rem;"><strong>${c.nome}</strong></td>
+                    <td style="padding: 0.6rem;" class="text-right bold" style="color:var(--red-primary);">${c.picks}</td>
                 `;
                 body.appendChild(tr);
             });
         }
 
-        // EVENTOS DE FILTRO
+        // EVENTOS DE FILTRO E BOTÕES
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 filtroAtual = e.target.getAttribute('data-filter');
+                expandidoJogadores = false; // Reseta expansão ao trocar de aba
                 renderizarRanking();
             });
         });
 
-        document.getElementById('inputSearchPlayer').addEventListener('input', renderizarRanking);
-        document.getElementById('inputSearchChamp').addEventListener('input', renderizarCampeoes);
+        document.getElementById('btnVerMaisJogadores').addEventListener('click', () => {
+            expandidoJogadores = !expandidoJogadores;
+            renderizarRanking();
+        });
+
+        document.getElementById('btnVerMaisChamps').addEventListener('click', () => {
+            expandidoChamps = !expandidoChamps;
+            renderizarCampeoes();
+        });
+
+        document.getElementById('inputSearchPlayer').addEventListener('input', () => {
+            renderizarRanking();
+        });
+        document.getElementById('inputSearchChamp').addEventListener('input', () => {
+            renderizarCampeoes();
+        });
 
         window.addEventListener('DOMContentLoaded', carregarDadosCompletos);
     </script>

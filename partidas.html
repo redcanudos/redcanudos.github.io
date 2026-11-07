@@ -82,10 +82,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        async function carregarPartidas() {
+       async function carregarPartidas() {
             const container = document.getElementById('gridPartidas');
             try {
-                const q = query(collection(db, "partidas"), orderBy("createdAt", "desc"));
+                const q = query(collection(db, "partidas"), orderBy("createdAt", "asc"));
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
@@ -93,10 +93,47 @@
                     return;
                 }
 
-                container.innerHTML = '';
+                // Agrupa os mapas por confrontoChave (MD3)
+                const seriesMap = {};
                 snap.forEach(docSnap => {
                     const p = docSnap.data();
-                    const id = docSnap.id;
+                    const chave = p.confrontoChave || `${p.homeTeam}_${p.awayTeam}`.toLowerCase();
+                    
+                    if (!seriesMap[chave]) {
+                        seriesMap[chave] = {
+                            homeTeam: p.homeTeam,
+                            awayTeam: p.awayTeam,
+                            data: p.data,
+                            mapas: []
+                        };
+                    }
+                    seriesMap[chave].mapas.push({ id: docSnap.id, ...p });
+                });
+
+                container.innerHTML = '';
+                Object.keys(seriesMap).forEach(chave => {
+                    const serie = seriesMap[chave];
+                    
+                    // Calcula placar geral da série MD3 (quantas vitórias cada time teve nos mapas)
+                    let vitoriasHome = 0;
+                    let vitoriasAway = 0;
+
+                    serie.mapas.forEach(m => {
+                        if (m.homeScore > m.awayScore) {
+                            // Se o time da casa do mapa for o homeTeam oficial da série
+                            if (m.homeTeam.trim().toLowerCase() === serie.homeTeam.trim().toLowerCase()) {
+                                vitoriasHome++;
+                            } else {
+                                vitoriasAway++;
+                            }
+                        } else if (m.awayScore > m.homeScore) {
+                            if (m.awayTeam.trim().toLowerCase() === serie.homeTeam.trim().toLowerCase()) {
+                                vitoriasHome++;
+                            } else {
+                                vitoriasAway++;
+                            }
+                        }
+                    });
 
                     const card = document.createElement('div');
                     card.className = 'sidebar-card';
@@ -105,25 +142,37 @@
                     card.style.justifyContent = 'space-between';
                     card.style.padding = '1.2rem';
 
+                    // Lista os mapas individuais dentro do card para acesso rápido
+                    let mapasHtml = serie.mapas.map((m, index) => `
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; background:var(--bg-main); padding:0.4rem 0.8rem; border-radius:4px; margin-top:0.4rem; align-items:center;">
+                            <span style="color:var(--text-muted); font-weight:700;">Mapa ${index + 1}</span>
+                            <span>${m.homeTeam} <strong>${m.homeScore} - ${m.awayScore}</strong> ${m.awayTeam}</span>
+                            <a href="detalhes-partida.html?id=${m.id}" style="color:var(--red-primary); text-decoration:none; font-weight:700;"><i class="fa-solid fa-eye"></i></a>
+                        </div>
+                    `).join('');
+
                     card.innerHTML = `
                         <div>
                             <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.8rem; font-weight:700;">
-                                <span><i class="fa-regular fa-calendar"></i> ${p.data || ''}</span>
-                                <span><i class="fa-regular fa-clock"></i> ${p.duracao || '20:00'}</span>
+                                <span><i class="fa-regular fa-calendar"></i> ${serie.data || ''}</span>
+                                <span style="color:var(--red-primary);">SÉRIE MD3</span>
                             </div>
-                            <div style="display:flex; align-items:center; justify-content:space-between; text-align:center; margin:1rem 0;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; text-align:center; margin:0.8rem 0;">
                                 <div style="flex:1;">
-                                    <strong style="font-size:0.95rem; display:block;">${p.homeTeam}</strong>
+                                    <strong style="font-size:0.95rem; display:block;">${serie.homeTeam}</strong>
                                 </div>
                                 <div style="padding:0 0.8rem; font-size:1.4rem; font-weight:900; color:var(--red-primary);">
-                                    ${p.homeScore} - ${p.awayScore}
+                                    ${vitoriasHome} - ${vitoriasAway}
                                 </div>
                                 <div style="flex:1;">
-                                    <strong style="font-size:0.95rem; display:block;">${p.awayTeam}</strong>
+                                    <strong style="font-size:0.95rem; display:block;">${serie.awayTeam}</strong>
                                 </div>
                             </div>
+                            <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; display: block; margin-bottom: 0.3rem;">PARTIDAS DA SÉRIE:</span>
+                                ${mapasHtml}
+                            </div>
                         </div>
-                        <a href="detalhes-partida.html?id=${id}" class="btn-submit" style="text-align:center; text-decoration:none; margin-top:1rem; font-size:0.85rem; padding:0.5rem;"><i class="fa-solid fa-eye"></i> Ver Detalhes da Partida</a>
                     `;
                     container.appendChild(card);
                 });

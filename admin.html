@@ -727,26 +727,27 @@
         }
 
         const convertBase64 = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300; 
-                        const scaleSize = MAX_WIDTH / img.width;
-                        canvas.width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
-                        canvas.height = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
-                };
-                reader.onerror = (error) => reject(error);
-            });
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Aumentado para 1200px para garantir imagens nítidas na capa das notícias
+                const MAX_WIDTH = 1200; 
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+                canvas.height = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', 0.85)); // Qualidade de 85% para manter boa nitidez
+            };
         };
+        reader.onerror = (error) => reject(error);
+    });
+};
 
         // RECALCULAR TELA / TABELA
         async function recalcularTabela() {

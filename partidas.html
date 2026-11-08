@@ -82,7 +82,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-       async function carregarPartidas() {
+        async function carregarPartidas() {
             const container = document.getElementById('gridPartidas');
             try {
                 const q = query(collection(db, "partidas"), orderBy("createdAt", "asc"));
@@ -93,13 +93,19 @@
                     return;
                 }
 
-                // Agrupa os mapas por confrontoChave (MD3)
+                // Agrupa os mapas rigorosamente pela chave unificada dos dois times (indor-sensível e ordem alfabética)
                 const seriesMap = {};
                 snap.forEach(docSnap => {
                     const p = docSnap.data();
-                    const chave = p.confrontoChave || `${p.homeTeam}_${p.awayTeam}`.toLowerCase();
+                    let chave = p.confrontoChave;
+                    if (!chave && p.homeTeam && p.awayTeam) {
+                        const timesOrd = [p.homeTeam.trim(), p.awayTeam.trim()].sort();
+                        chave = `${timesOrd[0]}_${timesOrd[1]}`.toLowerCase().replace(/\s+/g, '_');
+                    }
+                    chave = chave || 'partida_geral';
                     
                     if (!seriesMap[chave]) {
+                        // Define os nomes oficiais da série com base nos primeiros times encontrados
                         seriesMap[chave] = {
                             homeTeam: p.homeTeam,
                             awayTeam: p.awayTeam,
@@ -114,35 +120,22 @@
                 Object.keys(seriesMap).forEach(chave => {
                     const serie = seriesMap[chave];
                     
-                    // Calcula placar geral da série MD3 (quantas vitórias cada time teve nos mapas)
+                    // Calcula quantas vitórias cada time teve nos mapas da série
                     let vitoriasHome = 0;
                     let vitoriasAway = 0;
 
                     serie.mapas.forEach(m => {
-                        if (m.homeScore > m.awayScore) {
-                            // Se o time da casa do mapa for o homeTeam oficial da série
-                            if (m.homeTeam.trim().toLowerCase() === serie.homeTeam.trim().toLowerCase()) {
-                                vitoriasHome++;
-                            } else {
-                                vitoriasAway++;
-                            }
-                        } else if (m.awayScore > m.homeScore) {
-                            if (m.awayTeam.trim().toLowerCase() === serie.homeTeam.trim().toLowerCase()) {
-                                vitoriasHome++;
-                            } else {
-                                vitoriasAway++;
-                            }
+                        const vencedor = m.vencedorMapa ? m.vencedorMapa.trim().toLowerCase() : '';
+                        const timeHome = serie.homeTeam.trim().toLowerCase();
+
+                        if (vencedor === timeHome) {
+                            vitoriasHome++;
+                        } else {
+                            vitoriasAway++;
                         }
                     });
 
-                    const card = document.createElement('div');
-                    card.className = 'sidebar-card';
-                    card.style.display = 'flex';
-                    card.style.flexDirection = 'column';
-                    card.style.justifyContent = 'space-between';
-                    card.style.padding = '1.2rem';
-
-                    // Lista os mapas individuais dentro do card para acesso rápido
+                    // Lista os mapas individuais dentro do card
                     let mapasHtml = serie.mapas.map((m, index) => `
                         <div style="display:flex; justify-content:space-between; font-size:0.8rem; background:var(--bg-main); padding:0.4rem 0.8rem; border-radius:4px; margin-top:0.4rem; align-items:center;">
                             <span style="color:var(--text-muted); font-weight:700;">Mapa ${index + 1}</span>
@@ -150,6 +143,13 @@
                             <a href="detalhes-partida.html?id=${m.id}" style="color:var(--red-primary); text-decoration:none; font-weight:700;"><i class="fa-solid fa-eye"></i></a>
                         </div>
                     `).join('');
+
+                    const card = document.createElement('div');
+                    card.className = 'sidebar-card';
+                    card.style.display = 'flex';
+                    card.style.flexDirection = 'column';
+                    card.style.justifyContent = 'space-between';
+                    card.style.padding = '1.2rem';
 
                     card.innerHTML = `
                         <div>

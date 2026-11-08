@@ -589,7 +589,6 @@
         let timesCadastradosCache = {};
         let jogadoresCadastradosCache = [];
 
-        // LISTA COMPLETA DE TODOS OS CAMPEÕES DO LOL EM ORDEM ALFABÉTICA
         const todosCampeoesLoL = [
             "Aatrox", "Ahri", "Akali", "Akshan", "Alistar", "Ambessa", "Amumu", "Anivia", "Annie", "Aphelios", "Ashe", "Aurelion Sol", "Aurora", "Azir",
             "Bard", "Bel'Veth", "Blitzcrank", "Brand", "Braum", "Briar",
@@ -659,7 +658,6 @@
 
         document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
-        // CARREGAR TIMES CADASTRADOS EM TODOS OS SELECTS DO PAINEL
         async function carregarSelectsTimes() {
             const selects = [
                 document.getElementById('confTimeA'),
@@ -673,7 +671,6 @@
 
             try {
                 const snap = await getDocs(collection(db, "tabela"));
-                
                 selects.forEach(select => {
                     if (!select) return;
                     const valorAtual = select.value;
@@ -690,7 +687,6 @@
             }
         }
 
-        // Atualizar options do select de vencedor do mapa dinamicamente
         function atualizarSelectVencedorMapa() {
             const timeA = document.getElementById('timeAzul').value;
             const timeB = document.getElementById('timeVermelho').value;
@@ -709,7 +705,6 @@
         document.getElementById('timeAzul').addEventListener('change', atualizarSelectVencedorMapa);
         document.getElementById('timeVermelho').addEventListener('change', atualizarSelectVencedorMapa);
 
-        // BUSCA TODOS OS JOGADORES DOS PLANTÉIS CADASTRADOS PARA O SELECT DE JOGADORES
         async function carregarCacheJogadores() {
             jogadoresCadastradosCache = [];
             try {
@@ -752,192 +747,74 @@
             });
         };
 
-        // CADASTRO DE PRÓXIMOS CONFRONTOS
-        document.getElementById('formConfronto').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSalvarConfronto');
-            const msg = document.getElementById('msgConfrontoStatus');
-            const timeA = document.getElementById('confTimeA').value;
-            const timeB = document.getElementById('confTimeB').value;
-
-            if (timeA === timeB) {
-                alert("Os times não podem ser iguais!");
-                return;
-            }
-
-            btn.disabled = true;
-
+        // RECALCULAR TELA / TABELA
+        async function recalcularTabela() {
             try {
-                await addDoc(collection(db, "confrontos"), {
-                    homeTeam: timeA,
-                    awayTeam: timeB,
-                    data: document.getElementById('confData').value.trim(),
-                    horario: document.getElementById('confHora').value.trim(),
-                    createdAt: new Date()
+                const snapPartidas = await getDocs(collection(db, "partidas"));
+                const placarSeries = {};
+
+                snapPartidas.forEach(docSnap => {
+                    const p = docSnap.data();
+                    const chave = p.confrontoChave || `${p.homeTeam}_${p.awayTeam}`.toLowerCase().replace(/\s+/g, '_');
+                    
+                    if (!placarSeries[chave]) {
+                        placarSeries[chave] = {
+                            timeA: p.homeTeam,
+                            timeB: p.awayTeam,
+                            vitoriasA: 0,
+                            vitoriasB: 0
+                        };
+                    }
+
+                    const venceu = p.vencedorMapa || (p.homeScore > p.awayScore ? p.homeTeam : p.awayTeam);
+                    if (venceu.trim().toLowerCase() === placarSeries[chave].timeA.trim().toLowerCase()) {
+                        placarSeries[chave].vitoriasA++;
+                    } else {
+                        placarSeries[chave].vitoriasB++;
+                    }
                 });
 
-                msg.style.color = "#00e676";
-                msg.innerText = "✓ Confronto agendado com sucesso!";
-                document.getElementById('formConfronto').reset();
-                carregarConfrontosAdmin();
-            } catch (err) {
-                console.error(err);
-                msg.style.color = "#ff5252";
-                msg.innerText = "Erro ao agendar confronto.";
-            } finally {
-                btn.disabled = false;
-            }
-        });
+                const resumoTimes = {};
+                Object.keys(placarSeries).forEach(chave => {
+                    const s = placarSeries[chave];
+                    const tA = s.timeA.trim();
+                    const tB = s.timeB.trim();
 
-        async function carregarConfrontosAdmin() {
-            const list = document.getElementById('listaConfrontosAdmin');
-            list.innerHTML = '<p class="loading-text">Carregando...</p>';
-            try {
-                const q = query(collection(db, "confrontos"), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
+                    if (!resumoTimes[tA]) resumoTimes[tA] = { vitorias: 0, derrotas: 0, pontos: 0 };
+                    if (!resumoTimes[tB]) resumoTimes[tB] = { vitorias: 0, derrotas: 0, pontos: 0 };
 
-                if (snap.empty) {
-                    list.innerHTML = '<p class="empty-text">Nenhum confronto agendado.</p>';
-                    return;
+                    if (s.vitoriasA > s.vitoriasB) {
+                        resumoTimes[tA].vitorias += 1;
+                        resumoTimes[tA].pontos += 3;
+                        resumoTimes[tB].derrotas += 1;
+                    } else if (s.vitoriasB > s.vitoriasA) {
+                        resumoTimes[tB].vitorias += 1;
+                        resumoTimes[tB].pontos += 3;
+                        resumoTimes[tA].derrotas += 1;
+                    }
+                });
+
+                for (const nomeTime in resumoTimes) {
+                    const stats = resumoTimes[nomeTime];
+                    const timeRef = doc(db, "tabela", nomeTime);
+                    const docSnap = await getDoc(timeRef);
+                    if (docSnap.exists()) {
+                        await setDoc(timeRef, {
+                            vitorias: stats.vitorias,
+                            derrotas: stats.derrotas,
+                            pontos: stats.pontos
+                        }, { merge: true });
+                    }
                 }
-
-                list.innerHTML = '';
-                snap.forEach(docSnap => {
-                    const d = docSnap.data();
-                    const id = docSnap.id;
-
-                    const item = document.createElement('div');
-                    item.className = 'admin-news-item';
-                    item.innerHTML = `
-                        <div class="item-info">
-                            <span class="item-tag">${d.data} às ${d.horario}</span>
-                            <h4>${d.homeTeam} vs ${d.awayTeam}</h4>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn-delete-conf" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    `;
-                    list.appendChild(item);
-                });
-
-                list.querySelectorAll('.btn-delete-conf').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = e.currentTarget.getAttribute('data-id');
-                        if (confirm("Deseja apagar este confronto agendado?")) {
-                            await deleteDoc(doc(db, "confrontos", id));
-                            carregarConfrontosAdmin();
-                        }
-                    });
-                });
             } catch (err) {
-                console.error(err);
+                console.error("Erro ao recalcular tabela:", err);
             }
         }
 
-        function adicionarLinhaJogadorTime(nick = '', funcao = '', opgg = '', fotoUrl = '') {
-            const tbody = document.getElementById('tabelaJogadoresTimeInput');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <input type="file" class="input-jogador-foto-file" accept="image/*" style="width: 130px; color: #fff; font-size: 0.75rem;">
-                    <input type="hidden" class="input-jogador-foto-url" value="${fotoUrl}">
-                    ${fotoUrl ? '<small style="color:#00e676; display:block;">Foto salva</small>' : ''}
-                </td>
-                <td><input type="text" class="input-jogador-nick" placeholder="Ex: Dydreyzi" value="${nick}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-                <td><input type="text" class="input-jogador-funcao" placeholder="Ex: Top, JG" value="${funcao}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;"></td>
-                <td><input type="url" class="input-jogador-opgg" placeholder="https://www.op.gg/..." value="${opgg}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;"></td>
-                <td><button type="button" class="btn-remove-row" style="background:transparent; border:none; color:#ff5252; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
-            `;
-            tr.querySelector('.btn-remove-row').addEventListener('click', () => tr.remove());
-            tbody.appendChild(tr);
-        }
-
-        document.getElementById('btnAddJogadorTime').addEventListener('click', () => adicionarLinhaJogadorTime());
-
-        document.getElementById('formCadastrarTime').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSalvarTime');
-            const nomeTimeInput = document.getElementById('nomeNovoTime');
-            const nomeTime = nomeTimeInput.value.trim();
-            const tagTime = document.getElementById('tagNovoTime').value.trim();
-            const fileLogo = document.getElementById('logoTimeFile').files[0];
-            const msg = document.getElementById('msgTimeStatus');
-
-            if (!nomeTime) return;
-
-            btn.disabled = true;
-            msg.style.color = "#ffb74d";
-            msg.innerText = "⏳ Salvando time e processando plantel...";
-
-            try {
-                const timeRef = doc(db, "tabela", nomeTime);
-                const timeSnap = await getDoc(timeRef);
-
-                let logoUrl = "";
-                if (fileLogo) {
-                    logoUrl = await convertBase64(fileLogo);
-                } else if (timeSnap.exists()) {
-                    logoUrl = timeSnap.data().logoUrl || "";
-                }
-
-                let vitorias = 0;
-                let derrotas = 0;
-                let pontos = 0;
-
-                if (timeSnap.exists()) {
-                    vitorias = timeSnap.data().vitorias || 0;
-                    derrotas = timeSnap.data().derrotas || 0;
-                    pontos = timeSnap.data().pontos || 0;
-                }
-
-                const linhasJogadores = document.querySelectorAll('#tabelaJogadoresTimeInput tr');
-                let plantel = [];
-
-                for (const linha of linhasJogadores) {
-                    const nick = linha.querySelector('.input-jogador-nick').value.trim();
-                    const funcao = linha.querySelector('.input-jogador-funcao').value.trim();
-                    const opgg = linha.querySelector('.input-jogador-opgg').value.trim();
-                    const fileInput = linha.querySelector('.input-jogador-foto-file');
-                    let fotoUrl = linha.querySelector('.input-jogador-foto-url').value.trim();
-
-                    if (fileInput.files && fileInput.files[0]) {
-                        fotoUrl = await convertBase64(fileInput.files[0]);
-                    }
-
-                    if (nick) {
-                        plantel.push({ nick, funcao, opgg, fotoUrl });
-                    }
-                }
-
-                await setDoc(timeRef, {
-                    nome: nomeTime,
-                    tag: tagTime,
-                    logoUrl: logoUrl,
-                    plantel: plantel,
-                    vitorias: vitorias,
-                    derrotas: derrotas,
-                    pontos: pontos
-                }, { merge: true });
-
-                msg.style.color = "#00e676";
-                msg.innerText = `✓ Time "${nomeTime}" atualizado com sucesso!`;
-                document.getElementById('formCadastrarTime').reset();
-                document.getElementById('tabelaJogadoresTimeInput').innerHTML = '';
-                nomeTimeInput.disabled = false;
-                carregarTimesAdmin();
-                await carregarSelectsTimes();
-                await carregarCacheJogadores();
-            } catch (err) {
-                console.error(err);
-                msg.style.color = "#ff5252";
-                msg.innerText = "Erro ao salvar time.";
-            } finally {
-                btn.disabled = false;
-            }
-        });
-
+        // CARREGAR TIMES ADMIN
         async function carregarTimesAdmin() {
             const list = document.getElementById('listaTimesAdmin');
+            if (!list) return;
             list.innerHTML = '<p class="loading-text">Carregando times...</p>';
             try {
                 const snap = await getDocs(collection(db, "tabela"));
@@ -992,7 +869,7 @@
                     });
                 });
             } catch (err) {
-                console.error(err);
+                console.error("Erro ao carregar times:", err);
             }
         }
 
@@ -1015,13 +892,384 @@
 
             document.querySelector('.tab-btn[data-tab="tabTimes"]').click();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            const msg = document.getElementById('msgTimeStatus');
-            msg.style.color = "#ffb74d";
-            msg.innerText = `✏️ Editando time "${nomeTime}". Altere os dados abaixo e clique em Salvar.`;
         }
 
-        // ADICIONA LINHA NA TABELA DE PARTIDAS USANDO SELECT DINÂMICO DE JOGADORES E CAMPEÕES DO LOL
+        function adicionarLinhaJogadorTime(nick = '', funcao = '', opgg = '', fotoUrl = '') {
+            const tbody = document.getElementById('tabelaJogadoresTimeInput');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <input type="file" class="input-jogador-foto-file" accept="image/*" style="width: 130px; color: #fff; font-size: 0.75rem;">
+                    <input type="hidden" class="input-jogador-foto-url" value="${fotoUrl}">
+                    ${fotoUrl ? '<small style="color:#00e676; display:block;">Foto salva</small>' : ''}
+                </td>
+                <td><input type="text" class="input-jogador-nick" placeholder="Ex: Dydreyzi" value="${nick}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
+                <td><input type="text" class="input-jogador-funcao" placeholder="Ex: Top, JG" value="${funcao}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;"></td>
+                <td><input type="url" class="input-jogador-opgg" placeholder="https://www.op.gg/..." value="${opgg}" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;"></td>
+                <td><button type="button" class="btn-remove-row" style="background:transparent; border:none; color:#ff5252; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tr.querySelector('.btn-remove-row').addEventListener('click', () => tr.remove());
+            tbody.appendChild(tr);
+        }
+
+        document.getElementById('btnAddJogadorTime').addEventListener('click', () => adicionarLinhaJogadorTime());
+
+        document.getElementById('formCadastrarTime').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarTime');
+            const nomeTimeInput = document.getElementById('nomeNovoTime');
+            const nomeTime = nomeTimeInput.value.trim();
+            const tagTime = document.getElementById('tagNovoTime').value.trim();
+            const fileLogo = document.getElementById('logoTimeFile').files[0];
+            const msg = document.getElementById('msgTimeStatus');
+
+            if (!nomeTime) return;
+
+            btn.disabled = true;
+            msg.style.color = "#ffb74d";
+            msg.innerText = "⏳ Salvando time e processando plantel...";
+
+            try {
+                const timeRef = doc(db, "tabela", nomeTime);
+                const timeSnap = await getDoc(timeRef);
+
+                let logoUrl = "";
+                if (fileLogo) {
+                    logoUrl = await convertBase64(fileLogo);
+                } else if (timeSnap.exists()) {
+                    logoUrl = timeSnap.data().logoUrl || "";
+                }
+
+                let vitorias = timeSnap.exists() ? (timeSnap.data().vitorias || 0) : 0;
+                let derrotas = timeSnap.exists() ? (timeSnap.data().derrotas || 0) : 0;
+                let pontos = timeSnap.exists() ? (timeSnap.data().pontos || 0) : 0;
+
+                const linhasJogadores = document.querySelectorAll('#tabelaJogadoresTimeInput tr');
+                let plantel = [];
+
+                for (const linha of linhasJogadores) {
+                    const nick = linha.querySelector('.input-jogador-nick').value.trim();
+                    const funcao = linha.querySelector('.input-jogador-funcao').value.trim();
+                    const opgg = linha.querySelector('.input-jogador-opgg').value.trim();
+                    const fileInput = linha.querySelector('.input-jogador-foto-file');
+                    let fotoUrl = linha.querySelector('.input-jogador-foto-url').value.trim();
+
+                    if (fileInput.files && fileInput.files[0]) {
+                        fotoUrl = await convertBase64(fileInput.files[0]);
+                    }
+
+                    if (nick) {
+                        plantel.push({ nick, funcao, opgg, fotoUrl });
+                    }
+                }
+
+                await setDoc(timeRef, {
+                    nome: nomeTime,
+                    tag: tagTime,
+                    logoUrl: logoUrl,
+                    plantel: plantel,
+                    vitorias: vitorias,
+                    derrotas: derrotas,
+                    pontos: pontos
+                }, { merge: true });
+
+                msg.style.color = "#00e676";
+                msg.innerText = `✓ Time "${nomeTime}" atualizado com sucesso!`;
+                document.getElementById('formCadastrarTime').reset();
+                document.getElementById('tabelaJogadoresTimeInput').innerHTML = '';
+                nomeTimeInput.disabled = false;
+                carregarTimesAdmin();
+                await carregarSelectsTimes();
+                await carregarCacheJogadores();
+            } catch (err) {
+                console.error(err);
+                msg.style.color = "#ff5252";
+                msg.innerText = "Erro ao salvar time.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // CARREGAR CONFRONTOS ADMIN
+        async function carregarConfrontosAdmin() {
+            const list = document.getElementById('listaConfrontosAdmin');
+            if (!list) return;
+            list.innerHTML = '<p class="loading-text">Carregando...</p>';
+            try {
+                const q = query(collection(db, "confrontos"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    list.innerHTML = '<p class="empty-text">Nenhum confronto agendado.</p>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const id = docSnap.id;
+
+                    const item = document.createElement('div');
+                    item.className = 'admin-news-item';
+                    item.innerHTML = `
+                        <div class="item-info">
+                            <span class="item-tag">${d.data || ''} às ${d.horario || ''}</span>
+                            <h4>${d.homeTeam} vs ${d.awayTeam}</h4>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-delete-conf" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                list.querySelectorAll('.btn-delete-conf').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        if (confirm("Deseja apagar este confronto agendado?")) {
+                            await deleteDoc(doc(db, "confrontos", id));
+                            carregarConfrontosAdmin();
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error("Erro ao carregar confrontos admin:", err);
+            }
+        }
+
+        document.getElementById('formConfronto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarConfronto');
+            const msg = document.getElementById('msgConfrontoStatus');
+            const timeA = document.getElementById('confTimeA').value;
+            const timeB = document.getElementById('confTimeB').value;
+
+            if (timeA === timeB) {
+                alert("Os times não podem ser iguais!");
+                return;
+            }
+
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "confrontos"), {
+                    homeTeam: timeA,
+                    awayTeam: timeB,
+                    data: document.getElementById('confData').value.trim(),
+                    horario: document.getElementById('confHora').value.trim(),
+                    createdAt: new Date()
+                });
+
+                msg.style.color = "#00e676";
+                msg.innerText = "✓ Confronto agendado com sucesso!";
+                document.getElementById('formConfronto').reset();
+                carregarConfrontosAdmin();
+            } catch (err) {
+                console.error(err);
+                msg.style.color = "#ff5252";
+                msg.innerText = "Erro ao agendar confronto.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // SALVAR PARTIDA
+        document.getElementById('formPartida').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSalvarPartida');
+            btn.disabled = true;
+
+            const partidaIdEdit = document.getElementById('editPartidaId').value;
+            const timeA = document.getElementById('timeAzul').value.trim();
+            const timeB = document.getElementById('timeVermelho').value.trim();
+            const placarA = parseInt(document.getElementById('placarAzul').value) || 0;
+            const placarB = parseInt(document.getElementById('placarVermelho').value) || 0;
+            const vencedor = document.getElementById('vencedorMapa').value.trim();
+            const duracao = document.getElementById('duracaoPartida').value.trim() || '20:00';
+
+            if (!timeA || !timeB || timeA === timeB || !vencedor) {
+                alert("Verifique os campos de times e vencedor!");
+                btn.disabled = false;
+                return;
+            }
+
+            const timesOrd = [timeA, timeB].sort();
+            const confrontoChave = `${timesOrd[0]}_${timesOrd[1]}`.toLowerCase().replace(/\s+/g, '_');
+
+            try {
+                let partidaRefId = partidaIdEdit;
+                const dadosPartida = {
+                    confrontoChave: confrontoChave,
+                    homeTeam: timeA,
+                    awayTeam: timeB,
+                    homeScore: placarA,
+                    awayScore: placarB,
+                    vencedorMapa: vencedor,
+                    duracao: duracao,
+                    data: new Date().toLocaleDateString('pt-BR'),
+                    createdAt: new Date()
+                };
+
+                if (partidaIdEdit) {
+                    await setDoc(doc(db, "partidas", partidaIdEdit), dadosPartida, { merge: true });
+                    const qStatsAntigas = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", partidaIdEdit));
+                    const snapAntigas = await getDocs(qStatsAntigas);
+                    for (let sDoc of snapAntigas.docs) {
+                        await deleteDoc(doc(db, "estatisticas_jogadores", sDoc.id));
+                    }
+                } else {
+                    const docRef = await addDoc(collection(db, "partidas"), dadosPartida);
+                    partidaRefId = docRef.id;
+                }
+
+                const linhas = document.querySelectorAll('#tabelaJogadoresInput tr');
+                for (const linha of linhas) {
+                    const nick = linha.querySelector('.input-nick').value.trim();
+                    if (!nick) continue;
+
+                    const campeao = linha.querySelector('.input-campeao').value.trim() || 'Geral';
+                    const k = parseInt(linha.querySelector('.input-k').value) || 0;
+                    const d = parseInt(linha.querySelector('.input-d').value) || 0;
+                    const a = parseInt(linha.querySelector('.input-a').value) || 0;
+
+                    const statRef = doc(collection(db, "estatisticas_jogadores"));
+                    const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
+
+                    await setDoc(statRef, {
+                        partidaId: partidaRefId,
+                        nick: nick,
+                        campeao: campeao,
+                        abates: k,
+                        mortes: d,
+                        assistencias: a,
+                        kda: kdaCalc,
+                        createdAt: new Date()
+                    });
+                }
+
+                await recalcularTabela();
+
+                document.getElementById('msgPartidaStatus').style.color = "#00e676";
+                document.getElementById('msgPartidaStatus').innerText = partidaIdEdit ? "✓ Mapa editado e tabela atualizada!" : "✓ Mapa salvo e tabela atualizada!";
+                limparFormPartida();
+                carregarPartidas();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('msgPartidaStatus').style.color = "#ff5252";
+                document.getElementById('msgPartidaStatus').innerText = "Erro ao salvar mapa.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        function limparFormPartida() {
+            document.getElementById('formPartida').reset();
+            document.getElementById('editPartidaId').value = '';
+            document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Print & Registro de Mapa';
+            document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Confirmar e Salvar Mapa';
+            document.getElementById('btnCancelarEdicaoPartida').style.display = 'none';
+            document.getElementById('tabelaJogadoresInput').innerHTML = '';
+        }
+
+        document.getElementById('btnCancelarEdicaoPartida').addEventListener('click', limparFormPartida);
+
+        async function carregarPartidas() {
+            const list = document.getElementById('listaPartidas');
+            if (!list) return;
+            list.innerHTML = '<p class="loading-text">Carregando partidas...</p>';
+            try {
+                const q = query(collection(db, "partidas"), orderBy("createdAt", "desc"));
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    list.innerHTML = '<p class="empty-text">Nenhum mapa registrado ainda.</p>';
+                    return;
+                }
+
+                list.innerHTML = '';
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const id = docSnap.id;
+
+                    const item = document.createElement('div');
+                    item.className = 'admin-news-item';
+                    item.innerHTML = `
+                        <div class="item-info">
+                            <span class="item-tag">${d.data || ''} · ⏱️ ${d.duracao || '20:00'} · 👑 Vencedor: ${d.vencedorMapa || 'N/A'}</span>
+                            <h4>${d.homeTeam} (${d.homeScore}) x (${d.awayScore}) ${d.awayTeam}</h4>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn-edit-partida" data-id="${id}" title="Editar Mapa"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-delete" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                list.querySelectorAll('.btn-edit-partida').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        await carregarPartidaParaEdicao(id);
+                    });
+                });
+
+                list.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        if (confirm("Deseja apagar este mapa do histórico?")) {
+                            await deleteDoc(doc(db, "partidas", id));
+                            const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", id));
+                            const snapStats = await getDocs(qStats);
+                            for (let docS of snapStats.docs) {
+                                await deleteDoc(doc(db, "estatisticas_jogadores", docS.id));
+                            }
+                            await recalcularTabela();
+                            carregarPartidas();
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error("Erro ao carregar partidas admin:", err);
+            }
+        }
+
+        async function carregarPartidaParaEdicao(id) {
+            try {
+                const docSnap = await getDoc(doc(db, "partidas", id));
+                if (!docSnap.exists()) return;
+
+                const d = docSnap.data();
+                document.getElementById('editPartidaId').value = id;
+                document.getElementById('timeAzul').value = d.homeTeam || '';
+                document.getElementById('timeVermelho').value = d.awayTeam || '';
+                atualizarSelectVencedorMapa();
+                document.getElementById('vencedorMapa').value = d.vencedorMapa || '';
+                document.getElementById('placarAzul').value = d.homeScore || 0;
+                document.getElementById('placarVermelho').value = d.awayScore || 0;
+                document.getElementById('duracaoPartida').value = d.duracao || '20:00';
+
+                const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", id));
+                const snapStats = await getDocs(qStats);
+
+                const tbody = document.getElementById('tabelaJogadoresInput');
+                tbody.innerHTML = '';
+
+                for (let sDoc of snapStats.docs) {
+                    const st = sDoc.data();
+                    await adicionarLinhaJogador(st.nick, st.campeao, st.abates, st.mortes, st.assistencias);
+                }
+
+                document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#ffb74d;"></i> Editando Registro do Mapa';
+                document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações do Mapa';
+                document.getElementById('btnCancelarEdicaoPartida').style.display = 'block';
+
+                document.querySelector('.tab-btn[data-tab="tabPartidas"]').click();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (err) {
+                console.error("Erro ao carregar mapa para edição:", err);
+            }
+        }
+
         async function adicionarLinhaJogador(nickSelecionado = '', campeaoSelecionado = '', k = 0, d = 0, a = 0) {
             if (jogadoresCadastradosCache.length === 0) {
                 await carregarCacheJogadores();
@@ -1066,7 +1314,6 @@
             await adicionarLinhaJogador();
         });
 
-        // BOTÃO PROCESSAR PRINT (GERA AS 10 LINHAS LIMPAS DA PARTIDA)
         document.getElementById('btnProcessarPrint').addEventListener('click', async () => {
             const fileInput = document.getElementById('printEndGame');
             const status = document.getElementById('ocrStatus');
@@ -1098,13 +1345,11 @@
                 }
 
                 status.style.color = "#00e676";
-                status.innerText = "✓ 10 linhas criadas! Escolha os jogadores, os campeões e preencha o KDA.";
-
+                status.innerText = "✓ 10 linhas criadas!";
             } catch (err) {
                 console.error("Erro no OCR:", err);
                 status.style.color = "#ff5252";
-                status.innerText = "Erro ao ler a imagem. 10 linhas foram geradas para preenchimento.";
-                
+                status.innerText = "Erro ao ler a imagem. 10 linhas geradas para preenchimento.";
                 const tbody = document.getElementById('tabelaJogadoresInput');
                 tbody.innerHTML = '';
                 for (let i = 0; i < 10; i++) {
@@ -1143,6 +1388,7 @@
 
         async function carregarNoticias() {
             const list = document.getElementById('listaNoticias');
+            if (!list) return;
             list.innerHTML = '<p class="loading-text">Carregando...</p>';
             try {
                 const q = query(collection(db, "noticias"), orderBy("createdAt", "desc"));
@@ -1187,217 +1433,6 @@
             }
         }
 
-        // SALVAR OU EDITAR PARTIDA (MAPA INDIVIDUAL)
-        document.getElementById('formPartida').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSalvarPartida');
-            btn.disabled = true;
-
-            const partidaIdEdit = document.getElementById('editPartidaId').value;
-            const timeA = document.getElementById('timeAzul').value.trim();
-            const timeB = document.getElementById('timeVermelho').value.trim();
-            const placarA = parseInt(document.getElementById('placarAzul').value) || 0;
-            const placarB = parseInt(document.getElementById('placarVermelho').value) || 0;
-            const vencedor = document.getElementById('vencedorMapa').value.trim();
-            const duracao = document.getElementById('duracaoPartida').value.trim() || '20:00';
-
-            if (!timeA || !timeB) {
-                alert("Por favor, selecione ambos os times!");
-                btn.disabled = false;
-                return;
-            }
-
-            if (timeA === timeB) {
-                alert("Os times azul e vermelho não podem ser iguais!");
-                btn.disabled = false;
-                return;
-            }
-
-            if (!vencedor) {
-                alert("Por favor, selecione o time que venceu este mapa!");
-                btn.disabled = false;
-                return;
-            }
-
-            try {
-                let partidaRefId = partidaIdEdit;
-
-                const dadosPartida = {
-                    homeTeam: timeA,
-                    awayTeam: timeB,
-                    homeScore: placarA,
-                    awayScore: placarB,
-                    vencedorMapa: vencedor,
-                    duracao: duracao,
-                    data: new Date().toLocaleDateString('pt-BR'),
-                    createdAt: new Date()
-                };
-
-                if (partidaIdEdit) {
-                    await setDoc(doc(db, "partidas", partidaIdEdit), dadosPartida, { merge: true });
-                    
-                    // Apaga estatísticas de jogadores antigas para sobrescrever com as novas
-                    const qStatsAntigas = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", partidaIdEdit));
-                    const snapAntigas = await getDocs(qStatsAntigas);
-                    for (let sDoc of snapAntigas.docs) {
-                        await deleteDoc(doc(db, "estatisticas_jogadores", sDoc.id));
-                    }
-                } else {
-                    const docRef = await addDoc(collection(db, "partidas"), dadosPartida);
-                    partidaRefId = docRef.id;
-                }
-
-                // Salva as novas estatísticas individuais dos 10 jogadores no Firestore
-                const linhas = document.querySelectorAll('#tabelaJogadoresInput tr');
-                for (const linha of linhas) {
-                    const nick = linha.querySelector('.input-nick').value.trim();
-                    if (!nick) continue;
-
-                    const campeao = linha.querySelector('.input-campeao').value.trim() || 'Geral';
-                    const k = parseInt(linha.querySelector('.input-k').value) || 0;
-                    const d = parseInt(linha.querySelector('.input-d').value) || 0;
-                    const a = parseInt(linha.querySelector('.input-a').value) || 0;
-
-                    const statRef = doc(collection(db, "estatisticas_jogadores"));
-                    const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
-
-                    await setDoc(statRef, {
-                        partidaId: partidaRefId,
-                        nick: nick,
-                        campeao: campeao,
-                        abates: k,
-                        mortes: d,
-                        assistencias: a,
-                        kda: kdaCalc,
-                        createdAt: new Date()
-                    });
-                }
-
-                document.getElementById('msgPartidaStatus').style.color = "#00e676";
-                document.getElementById('msgPartidaStatus').innerText = partidaIdEdit ? "✓ Mapa editado com sucesso!" : "✓ Mapa salvo com sucesso!";
-                limparFormPartida();
-                carregarPartidas();
-            } catch (error) {
-                console.error(error);
-                document.getElementById('msgPartidaStatus').style.color = "#ff5252";
-                document.getElementById('msgPartidaStatus').innerText = "Erro ao salvar mapa.";
-            } finally {
-                btn.disabled = false;
-            }
-        });
-
-        function limparFormPartida() {
-            document.getElementById('formPartida').reset();
-            document.getElementById('editPartidaId').value = '';
-            document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Print & Registro de Mapa';
-            document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Confirmar e Salvar Mapa';
-            document.getElementById('btnCancelarEdicaoPartida').style.display = 'none';
-            document.getElementById('tabelaJogadoresInput').innerHTML = '';
-        }
-
-        document.getElementById('btnCancelarEdicaoPartida').addEventListener('click', limparFormPartida);
-
-        async function carregarPartidas() {
-            const list = document.getElementById('listaPartidas');
-            list.innerHTML = '<p class="loading-text">Carregando partidas...</p>';
-            try {
-                const q = query(collection(db, "partidas"), orderBy("createdAt", "desc"));
-                const snap = await getDocs(q);
-
-                if (snap.empty) {
-                    list.innerHTML = '<p class="empty-text">Nenhum mapa registrado ainda.</p>';
-                    return;
-                }
-
-                list.innerHTML = '';
-                snap.forEach(docSnap => {
-                    const d = docSnap.data();
-                    const id = docSnap.id;
-
-                    const item = document.createElement('div');
-                    item.className = 'admin-news-item';
-                    item.innerHTML = `
-                        <div class="item-info">
-                            <span class="item-tag">${d.data} · ⏱️ ${d.duracao || '20:00'} · 👑 Vencedor: ${d.vencedorMapa || 'N/A'}</span>
-                            <h4>${d.homeTeam} (${d.homeScore}) x (${d.awayScore}) ${d.awayTeam}</h4>
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn-edit-partida" data-id="${id}" title="Editar Mapa"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-delete" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    `;
-                    list.appendChild(item);
-                });
-
-                list.querySelectorAll('.btn-edit-partida').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = e.currentTarget.getAttribute('data-id');
-                        await carregarPartidaParaEdicao(id);
-                    });
-                });
-
-                list.querySelectorAll('.btn-delete').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = e.currentTarget.getAttribute('data-id');
-                        if (confirm("Deseja apagar este mapa do histórico?")) {
-                            await deleteDoc(doc(db, "partidas", id));
-                            
-                            // Remove estatísticas vinculadas
-                            const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", id));
-                            const snapStats = await getDocs(qStats);
-                            for (let docS of snapStats.docs) {
-                                await deleteDoc(doc(db, "estatisticas_jogadores", docS.id));
-                            }
-
-                            carregarPartidas();
-                        }
-                    });
-                });
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function carregarPartidaParaEdicao(id) {
-            try {
-                const docSnap = await getDoc(doc(db, "partidas", id));
-                if (!docSnap.exists()) return;
-
-                const d = docSnap.data();
-                document.getElementById('editPartidaId').value = id;
-                document.getElementById('timeAzul').value = d.homeTeam || '';
-                document.getElementById('timeVermelho').value = d.awayTeam || '';
-                atualizarSelectVencedorMapa();
-                document.getElementById('vencedorMapa').value = d.vencedorMapa || '';
-                document.getElementById('placarAzul').value = d.homeScore || 0;
-                document.getElementById('placarVermelho').value = d.awayScore || 0;
-                document.getElementById('duracaoPartida').value = d.duracao || '20:00';
-
-                // Carrega os 10 KDAs salvos no Firestore
-                const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", id));
-                const snapStats = await getDocs(qStats);
-
-                const tbody = document.getElementById('tabelaJogadoresInput');
-                tbody.innerHTML = '';
-
-                for (let sDoc of snapStats.docs) {
-                    const st = sDoc.data();
-                    await adicionarLinhaJogador(st.nick, st.campeao, st.abates, st.mortes, st.assistencias);
-                }
-
-                document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#ffb74d;"></i> Editando Registro do Mapa';
-                document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações do Mapa';
-                document.getElementById('btnCancelarEdicaoPartida').style.display = 'block';
-
-                document.querySelector('.tab-btn[data-tab="tabPartidas"]').click();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            } catch (err) {
-                console.error("Erro ao carregar mapa para edição:", err);
-            }
-        }
-
-        // ================= SISTEMA DE PLACAR DE SÉRIES / INDEX (SÉRIES MD3 / MD5 DE HOJE) =================
         document.getElementById('formResultadoHoje').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvarResultadoHoje');
@@ -1435,13 +1470,13 @@
                 }
 
                 document.getElementById('msgResultadoHojeStatus').style.color = "#00e676";
-                document.getElementById('msgResultadoHojeStatus').innerText = "✓ Placar da série salvo e sincronizado com a tela inicial!";
+                document.getElementById('msgResultadoHojeStatus').innerText = "✓ Placar da série salvo!";
                 limparFormResultadoHoje();
                 carregarResultadosHojeAdmin();
             } catch (err) {
                 console.error(err);
                 document.getElementById('msgResultadoHojeStatus').style.color = "#ff5252";
-                document.getElementById('msgResultadoHojeStatus').innerText = "Erro ao salvar placar da série.";
+                document.getElementById('msgResultadoHojeStatus').innerText = "Erro ao salvar placar.";
             } finally {
                 btn.disabled = false;
             }
@@ -1458,13 +1493,14 @@
 
         async function carregarResultadosHojeAdmin() {
             const list = document.getElementById('listaResultadosHojeAdmin');
-            list.innerHTML = '<p class="loading-text">Carregando placares do index...</p>';
+            if (!list) return;
+            list.innerHTML = '<p class="loading-text">Carregando placares...</p>';
             try {
                 const q = query(collection(db, "resultados_hoje"), orderBy("createdAt", "desc"));
                 const snap = await getDocs(q);
 
                 if (snap.empty) {
-                    list.innerHTML = '<p class="empty-text">Nenhum resultado de série cadastrado para o index.</p>';
+                    list.innerHTML = '<p class="empty-text">Nenhum resultado cadastrado.</p>';
                     return;
                 }
 
@@ -1481,7 +1517,7 @@
                             <h4>${d.homeTeam} ${d.homeScore} x ${d.awayScore} ${d.awayTeam}</h4>
                         </div>
                         <div class="item-actions">
-                            <button class="btn-edit-res" data-id="${id}" title="Editar Placar"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-edit-res" data-id="${id}" title="Editar"><i class="fa-solid fa-pen"></i></button>
                             <button class="btn-delete-res" data-id="${id}" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     `;
@@ -1502,7 +1538,7 @@
                             document.getElementById('resStatus').value = d.status || 'BO3 · FINALIZADO';
                             document.getElementById('resData').value = d.data || 'Hoje';
 
-                            document.getElementById('btnSalvarResultadoHoje').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Atualizar Placar no Index';
+                            document.getElementById('btnSalvarResultadoHoje').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Atualizar Placar';
                             document.getElementById('btnCancelarEdicaoResultado').style.display = 'block';
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
@@ -1512,14 +1548,14 @@
                 list.querySelectorAll('.btn-delete-res').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const id = e.currentTarget.getAttribute('data-id');
-                        if (confirm("Deseja apagar este placar do index?")) {
+                        if (confirm("Deseja apagar este placar?")) {
                             await deleteDoc(doc(db, "resultados_hoje", id));
                             carregarResultadosHojeAdmin();
                         }
                     });
                 });
             } catch (err) {
-                console.error(err);
+                console.error("Erro ao carregar resultados hoje admin:", err);
             }
         }
     </script>

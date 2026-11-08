@@ -265,7 +265,6 @@
                             abates: 0,
                             mortes: 0,
                             assistencias: 0,
-                            somaKda: 0,
                             campeoesMap: {}
                         };
                     }
@@ -275,7 +274,6 @@
                     jObj.abates += k;
                     jObj.mortes += m;
                     jObj.assistencias += a;
-                    jObj.somaKda += kdaPartida;
 
                     if (!jObj.campeoesMap[champ]) {
                         jObj.campeoesMap[champ] = { count: 0, melhorKda: 0 };
@@ -290,7 +288,12 @@
 
                 jogadoresConsolidados = Object.keys(mapJogadoresBrutos).map(key => {
                     const j = mapJogadoresBrutos[key];
-                    const mediaKda = j.partidasJogadas > 0 ? parseFloat((j.somaKda / j.partidasJogadas).toFixed(2)) : 0.00;
+                    
+                    // Cálculo oficial do KDA acumulado do torneio: (Kills + Assists) / Deaths
+                    const totalMortes = j.mortes;
+                    const kdaCalculado = totalMortes === 0 
+                        ? (j.abates + j.assistencias) 
+                        : parseFloat(((j.abates + j.assistencias) / totalMortes).toFixed(2));
 
                     let champFavorito = 'Geral';
                     let melhorScoreChamp = -1;
@@ -310,7 +313,7 @@
                         abates: j.abates,
                         mortes: j.mortes,
                         assistencias: j.assistencias,
-                        kda: mediaKda
+                        kda: kdaCalculado
                     };
                 });
 
@@ -333,7 +336,7 @@
                 (p.campeaoFavorito && p.campeaoFavorito.toLowerCase().includes(searchVal))
             );
 
-            // Ordenação correta: para mortes, quem tem mais mortes fica no topo (decrescente)
+            // Ordenação decrescente para todos os filtros (inclusive mortes)
             listaFiltrada.sort((a, b) => {
                 return (b[filtroAtual] || 0) - (a[filtroAtual] || 0);
             });

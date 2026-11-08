@@ -215,24 +215,26 @@
                     const logoA = mapLogos[tA.toLowerCase()] || '';
                     const logoB = mapLogos[tB.toLowerCase()] || '';
 
-                    const chaveBusca = `${tA.toLowerCase()}_${tB.toLowerCase()}`;
-                    const res = mapResultados[chaveBusca];
+                    // Dentro da função carregarConfrontosHome no index.html:
+                        const chaveBusca = `${tA.toLowerCase()}_${tB.toLowerCase()}`;
+                        const res = mapResultados[chaveBusca];
 
-                    let centroHtml = '';
-                    let corA = '#fff';
-                    let corB = '#fff';
+                        let centroHtml = '';
+                        let corA = '#fff';
+                        let corB = '#fff';
 
-                    if (res) {
-                        let scoreA = res.invertido ? res.awayScore : res.homeScore;
-                        let scoreB = res.invertido ? res.homeScore : res.awayScore;
+                        if (res) {
+                            // Garante que pega estritamente o placar de mapas da série (ex: 2 - 0)
+                            let scoreA = res.invertido ? res.awayScore : res.homeScore;
+                            let scoreB = res.invertido ? res.homeScore : res.awayScore;
 
-                        if (scoreA > scoreB) corA = '#00e676';
-                        else if (scoreB > scoreA) corB = '#00e676';
+                            if (scoreA > scoreB) corA = '#00e676';
+                            else if (scoreB > scoreA) corB = '#00e676';
 
-                        centroHtml = `<span style="font-size:1.1rem; font-weight:900; color:var(--red-primary); background:rgba(229,9,20,0.1); padding:0.2rem 0.6rem; border-radius:4px;">${scoreA} - ${scoreB}</span>`;
-                    } else {
-                        centroHtml = `<span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">VS<br>${c.horario || ''}</span>`;
-                    }
+                            centroHtml = `<span style="font-size:1.1rem; font-weight:900; color:var(--red-primary); background:rgba(229,9,20,0.1); padding:0.2rem 0.6rem; border-radius:4px;">${scoreA} - ${scoreB}</span>`;
+                        } else {
+                            centroHtml = `<span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">VS<br>${c.horario || ''}</span>`;
+                        }
 
                     const card = document.createElement('div');
                     card.style.background = 'var(--bg-main)';

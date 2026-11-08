@@ -471,6 +471,7 @@
                                     <table class="mini-table" style="width: 100%; margin-bottom: 1rem;">
                                         <thead>
                                             <tr>
+                                                <th>Lane</th>
                                                 <th>Nick do Jogador</th>
                                                 <th>Campeão Escolhido</th>
                                                 <th class="text-right">Abates (K)</th>
@@ -1123,29 +1124,31 @@
                 }
 
                 const linhas = document.querySelectorAll('#tabelaJogadoresInput tr');
-                for (const linha of linhas) {
-                    const nick = linha.querySelector('.input-nick').value.trim();
-                    if (!nick) continue;
+for (const linha of linhas) {
+    const lane = linha.querySelector('.input-lane').value.trim() || 'TOP';
+    const nick = linha.querySelector('.input-nick').value.trim();
+    if (!nick) continue;
 
-                    const campeao = linha.querySelector('.input-campeao').value.trim() || 'Geral';
-                    const k = parseInt(linha.querySelector('.input-k').value) || 0;
-                    const d = parseInt(linha.querySelector('.input-d').value) || 0;
-                    const a = parseInt(linha.querySelector('.input-a').value) || 0;
+    const campeao = linha.querySelector('.input-campeao').value.trim() || 'Geral';
+    const k = parseInt(linha.querySelector('.input-k').value) || 0;
+    const d = parseInt(linha.querySelector('.input-d').value) || 0;
+    const a = parseInt(linha.querySelector('.input-a').value) || 0;
 
-                    const statRef = doc(collection(db, "estatisticas_jogadores"));
-                    const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
+    const statRef = doc(collection(db, "estatisticas_jogadores"));
+    const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
 
-                    await setDoc(statRef, {
-                        partidaId: partidaRefId,
-                        nick: nick,
-                        campeao: campeao,
-                        abates: k,
-                        mortes: d,
-                        assistencias: a,
-                        kda: kdaCalc,
-                        createdAt: new Date()
-                    });
-                }
+    await setDoc(statRef, {
+        partidaId: partidaRefId,
+        lane: lane, // <-- Salva a lane exata escolhida para esse mapa
+        nick: nick,
+        campeao: campeao,
+        abates: k,
+        mortes: d,
+        assistencias: a,
+        kda: kdaCalc,
+        createdAt: new Date()
+    });
+}
 
                 await recalcularTabela();
 
@@ -1255,9 +1258,9 @@
                 tbody.innerHTML = '';
 
                 for (let sDoc of snapStats.docs) {
-                    const st = sDoc.data();
-                    await adicionarLinhaJogador(st.nick, st.campeao, st.abates, st.mortes, st.assistencias);
-                }
+                const st = sDoc.data();
+                await adicionarLinhaJogador(st.nick, st.campeao, st.lane || 'TOP', st.abates, st.mortes, st.assistencias);
+            }
 
                 document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#ffb74d;"></i> Editando Registro do Mapa';
                 document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações do Mapa';
@@ -1270,50 +1273,57 @@
             }
         }
 
-        async function adicionarLinhaJogador(nickSelecionado = '', campeaoSelecionado = '', k = 0, d = 0, a = 0) {
-            if (jogadoresCadastradosCache.length === 0) {
-                await carregarCacheJogadores();
-            }
+        async function adicionarLinhaJogador(nickSelecionado = '', campeaoSelecionado = '', laneSelecionada = 'TOP', k = 0, d = 0, a = 0) {
+    if (jogadoresCadastradosCache.length === 0) {
+        await carregarCacheJogadores();
+    }
 
-            const tbody = document.getElementById('tabelaJogadoresInput');
-            const tr = document.createElement('tr');
+    const tbody = document.getElementById('tabelaJogadoresInput');
+    const tr = document.createElement('tr');
 
-            let opcoesNicks = '<option value="">Selecione o jogador...</option>';
-            jogadoresCadastradosCache.forEach(nick => {
-                const selected = (nick.toLowerCase() === nickSelecionado.toLowerCase()) ? 'selected' : '';
-                opcoesNicks += `<option value="${nick}" ${selected}>${nick}</option>`;
-            });
+    let opcoesNicks = '<option value="">Selecione o jogador...</option>';
+    jogadoresCadastradosCache.forEach(nick => {
+        const selected = (nick.toLowerCase() === nickSelecionado.toLowerCase()) ? 'selected' : '';
+        opcoesNicks += `<option value="${nick}" ${selected}>${nick}</option>`;
+    });
 
-            let opcoesCampeoes = '<option value="">Selecione o campeão...</option>';
-            todosCampeoesLoL.forEach(champ => {
-                const selected = (champ.toLowerCase() === campeaoSelecionado.toLowerCase()) ? 'selected' : '';
-                opcoesCampeoes += `<option value="${champ}" ${selected}>${champ}</option>`;
-            });
+    let opcoesCampeoes = '<option value="">Selecione o campeão...</option>';
+    todosCampeoesLoL.forEach(champ => {
+        const selected = (champ.toLowerCase() === campeaoSelecionado.toLowerCase()) ? 'selected' : '';
+        opcoesCampeoes += `<option value="${champ}" ${selected}>${champ}</option>`;
+    });
 
-            tr.innerHTML = `
-                <td>
-                    <select class="input-nick" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
-                        ${opcoesNicks}
-                    </select>
-                </td>
-                <td>
-                    <select class="input-campeao" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
-                        ${opcoesCampeoes}
-                    </select>
-                </td>
-                <td class="text-right"><input type="number" class="input-k" min="0" value="${k}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-                <td class="text-right"><input type="number" class="input-d" min="0" value="${d}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-                <td class="text-right"><input type="number" class="input-a" min="0" value="${a}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-                <td><button type="button" class="btn-remove-row" style="background:transparent; border:none; color:#ff5252; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
-            `;
-            tr.querySelector('.btn-remove-row').addEventListener('click', () => tr.remove());
-            tbody.appendChild(tr);
-        }
+    const lanesPossiveis = ["TOP", "JG", "MID", "ADC", "SUP"];
+    let opcoesLanes = '';
+    lanesPossiveis.forEach(l => {
+        const selected = (l.toLowerCase() === laneSelecionada.toLowerCase()) ? 'selected' : '';
+        opcoesLanes += `<option value="${l}" ${selected}>${l}</option>`;
+    });
 
-        document.getElementById('btnAddJogador').addEventListener('click', async () => {
-            await adicionarLinhaJogador();
-        });
-
+    tr.innerHTML = `
+        <td>
+            <select class="input-lane" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
+                ${opcoesLanes}
+            </select>
+        </td>
+        <td>
+            <select class="input-nick" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
+                ${opcoesNicks}
+            </select>
+        </td>
+        <td>
+            <select class="input-campeao" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
+                ${opcoesCampeoes}
+            </select>
+        </td>
+        <td class="text-right"><input type="number" class="input-k" min="0" value="${k}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
+        <td class="text-right"><input type="number" class="input-d" min="0" value="${d}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
+        <td class="text-right"><input type="number" class="input-a" min="0" value="${a}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
+        <td><button type="button" class="btn-remove-row" style="background:transparent; border:none; color:#ff5252; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
+    `;
+    tr.querySelector('.btn-remove-row').addEventListener('click', () => tr.remove());
+    tbody.appendChild(tr);
+}
         document.getElementById('btnProcessarPrint').addEventListener('click', async () => {
             const fileInput = document.getElementById('printEndGame');
             const status = document.getElementById('ocrStatus');

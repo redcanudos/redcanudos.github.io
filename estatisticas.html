@@ -84,7 +84,7 @@
 
                 <!-- CAMPO DE BUSCA -->
                 <div style="margin-bottom: 1rem;">
-                    <input type="text" id="inputSearchPlayer" placeholder="Buscar jogador ou campeão..." style="width: 100%; padding: 0.6rem 0.8rem; background: var(--bg-main); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 0.85rem; outline: none;">
+                    <input type="text" id="inputSearchPlayer" placeholder="Buscar jogador, time ou campeão..." style="width: 100%; padding: 0.6rem 0.8rem; background: var(--bg-main); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 0.85rem; outline: none;">
                 </div>
 
                 <!-- FILTROS POR ABA -->
@@ -101,13 +101,14 @@
                             <tr style="font-size: 0.75rem; color: var(--text-muted); text-align: left;">
                                 <th style="padding: 0.6rem;">#</th>
                                 <th style="padding: 0.6rem;">Jogador</th>
+                                <th style="padding: 0.6rem;">Time</th>
                                 <th style="padding: 0.6rem;">Campeão Favorito</th>
                                 <th class="text-center" style="padding: 0.6rem;">K / D / A</th>
                                 <th class="text-right" style="padding: 0.6rem;" id="thMetricLabel">KDA</th>
                             </tr>
                         </thead>
                         <tbody id="statsBody">
-                            <tr><td colspan="5" class="loading-text">Carregando dados...</td></tr>
+                            <tr><td colspan="6" class="loading-text">Carregando dados...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -219,7 +220,22 @@
                     document.getElementById('metricJogoCurto').innerHTML = `<h3 style="font-size:1.1rem; color:#fff; font-weight:900;">${jogoCurto.tempo}</h3><small style="color:var(--text-muted);">${jogoCurto.timeA} x ${jogoCurto.timeB}</small>`;
                 }
 
-                // 2. Estatísticas de jogadores individuais (agrupamento e consolidação por nick)
+                // 2. Mapeia plantéis para descobrir o time de cada jogador
+                const snapTimes = await getDocs(collection(db, "tabela"));
+                const mapJogadorTime = {};
+                snapTimes.forEach(tDoc => {
+                    const tData = tDoc.data();
+                    const nomeTime = tData.nome || tDoc.id;
+                    if (tData.plantel && Array.isArray(tData.plantel)) {
+                        tData.plantel.forEach(j => {
+                            if (j.nick) {
+                                mapJogadorTime[j.nick.toLowerCase().trim()] = nomeTime;
+                            }
+                        });
+                    }
+                });
+
+                // 3. Estatísticas de jogadores individuais (agrupamento e consolidação por nick)
                 const snapJogadores = await getDocs(collection(db, "estatisticas_jogadores"));
                 const mapJogadoresBrutos = {};
                 campeoesPicks = {};
@@ -244,12 +260,13 @@
                     if (!mapJogadoresBrutos[nickKey]) {
                         mapJogadoresBrutos[nickKey] = {
                             nick: nick,
+                            time: mapJogadorTime[nickKey] || '—',
                             partidasJogadas: 0,
                             abates: 0,
                             mortes: 0,
                             assistencias: 0,
                             somaKda: 0,
-                            campeoesMap: {} // { 'Ahri': { totalKda: 12.5, count: 2, melhorKda: 8.0 } }
+                            campeoesMap: {}
                         };
                     }
 
@@ -271,17 +288,14 @@
 
                 document.getElementById('metricAbates').innerText = totalAbatesLiga;
 
-                // Constrói o array final consolidado e define o Campeão Favorito (com base no melhor KDA ou mais jogado)
                 jogadoresConsolidados = Object.keys(mapJogadoresBrutos).map(key => {
                     const j = mapJogadoresBrutos[key];
                     const mediaKda = j.partidasJogadas > 0 ? parseFloat((j.somaKda / j.partidasJogadas).toFixed(2)) : 0.00;
 
-                    // Encontra o campeão favorito: maior KDA ou mais jogado
                     let champFavorito = 'Geral';
                     let melhorScoreChamp = -1;
                     Object.keys(j.campeoesMap).forEach(c => {
                         const info = j.campeoesMap[c];
-                        // Prioriza campeão com melhor KDA, se empatar, mais jogado
                         const score = info.melhorKda * 100 + info.count;
                         if (score > melhorScoreChamp) {
                             melhorScoreChamp = score;
@@ -291,6 +305,7 @@
 
                     return {
                         nick: j.nick,
+                        time: j.time,
                         campeaoFavorito: champFavorito,
                         abates: j.abates,
                         mortes: j.mortes,
@@ -314,14 +329,12 @@
 
             let listaFiltrada = jogadoresConsolidados.filter(p => 
                 (p.nick && p.nick.toLowerCase().includes(searchVal)) || 
+                (p.time && p.time.toLowerCase().includes(searchVal)) || 
                 (p.campeaoFavorito && p.campeaoFavorito.toLowerCase().includes(searchVal))
             );
 
-            // Ordenação conforme aba ativa
+            // Ordenação correta: para mortes, quem tem mais mortes fica no topo (decrescente)
             listaFiltrada.sort((a, b) => {
-                if (filtroAtual === 'mortes') {
-                    return (a[filtroAtual] || 0) - (b[filtroAtual] || 0); // Menor morte primeiro ou maior? Geralmente maior ou menor, mantemos decrescente exceto se especificado
-                }
                 return (b[filtroAtual] || 0) - (a[filtroAtual] || 0);
             });
 
@@ -338,7 +351,7 @@
             const listaExibicao = expandidoJogadores ? listaFiltrada : listaFiltrada.slice(0, 10);
 
             if (listaExibicao.length === 0) {
-                body.innerHTML = '<tr><td colspan="5" class="empty-text">Nenhum jogador encontrado.</td></tr>';
+                body.innerHTML = '<tr><td colspan="6" class="empty-text">Nenhum jogador encontrado.</td></tr>';
                 return;
             }
 
@@ -353,6 +366,7 @@
                 tr.innerHTML = `
                     <td style="padding: 0.6rem;" class="pos">${pos}</td>
                     <td style="padding: 0.6rem;"><strong><a href="detalhes-jogador.html?nick=${encodeURIComponent(p.nick)}" style="color:#fff; text-decoration:none;">${p.nick}</a></strong></td>
+                    <td style="padding: 0.6rem; color:var(--text-muted);">${p.time}</td>
                     <td style="padding: 0.6rem; color:var(--text-muted);">${p.campeaoFavorito}</td>
                     <td style="padding: 0.6rem;" class="text-center"><strong>${p.abates}</strong> / <span style="color:#ff5252;">${p.mortes}</span> / ${p.assistencias}</td>
                     <td style="padding: 0.6rem;" class="text-right bold" style="color:var(--red-primary);">${valDisplay}</td>
@@ -403,13 +417,12 @@
             });
         }
 
-        // EVENTOS DE FILTRO E BOTÕES
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 filtroAtual = e.target.getAttribute('data-filter');
-                expandidoJogadores = false; // Reseta expansão ao trocar de aba
+                expandidoJogadores = false;
                 renderizarRanking();
             });
         });

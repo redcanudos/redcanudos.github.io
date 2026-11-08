@@ -178,7 +178,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const matchId = urlParams.get('id');
 
-        // Ordem hierárquica das rotas solicitada: TOP, JG, MID, ADC, SUP
+        // Ordem hierárquica das rotas: TOP, JG, MID, ADC, SUP
         const ordemRotasPeso = {
             'top': 1,
             'jg': 2, 'jungle': 2,
@@ -231,6 +231,7 @@
                 document.getElementById('scoreTimeAzul').innerText = `Abates: ${p.homeScore}`;
                 document.getElementById('scoreTimeVermelho').innerText = `Abates: ${p.awayScore}`;
 
+                // Busca as estatísticas individuais salvas para esta partida
                 const qStats = query(collection(db, "estatisticas_jogadores"), where("partidaId", "==", matchId));
                 const snapJogadores = await getDocs(qStats);
 
@@ -243,19 +244,16 @@
                     return;
                 }
 
-                // Busca plantéis e funções cadastradas no banco
+                // Carrega plantéis para saber a qual time cada jogador pertence
                 const snapTimes = await getDocs(collection(db, "tabela"));
-                const mapJogadorInfo = {};
+                const mapJogadorTime = {};
                 snapTimes.forEach(tDoc => {
                     const tData = tDoc.data();
                     const nomeTime = tData.nome || tDoc.id;
                     if (tData.plantel && Array.isArray(tData.plantel)) {
                         tData.plantel.forEach(j => {
                             if (j.nick) {
-                                mapJogadorInfo[j.nick.toLowerCase().trim()] = {
-                                    time: nomeTime.toLowerCase().trim(),
-                                    funcao: j.funcao || 'Atleta'
-                                };
+                                mapJogadorTime[j.nick.toLowerCase().trim()] = nomeTime.toLowerCase().trim();
                             }
                         });
                     }
@@ -268,7 +266,10 @@
                 snapJogadores.forEach(docSnap => {
                     const j = docSnap.data();
                     const nickLower = (j.nick || '').toLowerCase().trim();
-                    const info = mapJogadorInfo[nickLower] || { time: '', funcao: 'Atleta' };
+                    const timeDoJogador = mapJogadorTime[nickLower];
+
+                    // Lê a lane que foi escolhida especificamente no cadastro deste mapa
+                    const laneAtuacao = j.lane || 'TOP';
 
                     const jogadorObj = {
                         nick: j.nick,
@@ -277,16 +278,17 @@
                         mortes: j.mortes || 0,
                         assistencias: j.assistencias || 0,
                         kda: j.kda || '0.00',
-                        funcao: info.funcao,
-                        peso: obterPesoRota(info.funcao)
+                        lane: laneAtuacao,
+                        peso: obterPesoRota(laneAtuacao)
                     };
 
-                    if (info.time && info.time === timeAzulNome.toLowerCase().trim()) {
+                    // Divide entre Time Azul (homeTeam) e Time Vermelho (awayTeam)
+                    if (timeDoJogador && timeDoJogador === timeAzulNome.toLowerCase().trim()) {
                         listaAzul.push(jogadorObj);
-                    } else if (info.time && info.time === timeVermelhoNome.toLowerCase().trim()) {
+                    } else if (timeDoJogador && timeDoJogador === timeVermelhoNome.toLowerCase().trim()) {
                         listaVermelho.push(jogadorObj);
                     } else {
-                        // Fallback caso o nick não esteja rigorosamente vinculado no plantel
+                        // Fallback: divide os 5 primeiros no azul e os 5 seguintes no vermelho caso não ache no plantel
                         if (contadorFallback < 5) {
                             listaAzul.push(jogadorObj);
                         } else {
@@ -304,7 +306,7 @@
                     if (lista.length === 0) return '<tr><td colspan="5" class="empty-text">Nenhum jogador.</td></tr>';
                     return lista.map(j => `
                         <tr>
-                            <td><span style="font-size:0.75rem; background:rgba(255,255,255,0.06); padding:0.15rem 0.4rem; border-radius:3px; font-weight:800; color:var(--text-muted);">${j.funcao}</span></td>
+                            <td><span style="font-size:0.75rem; background:rgba(255,255,255,0.06); padding:0.15rem 0.4rem; border-radius:3px; font-weight:800; color:var(--text-muted);">${j.lane}</span></td>
                             <td><strong>${j.nick}</strong></td>
                             <td style="color:var(--text-muted);">${j.campeao}</td>
                             <td class="text-center"><strong>${j.abates}</strong> / <span style="color:#ff5252;">${j.mortes}</span> / ${j.assistencias}</td>

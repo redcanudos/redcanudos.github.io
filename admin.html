@@ -462,9 +462,12 @@
                             </div>
 
                             <div style="margin-top: 1.5rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
                                     <label style="font-size: 0.95rem; color: #fff; font-weight: 800;"><i class="fa-solid fa-users"></i> Jogadores, Campeões e KDAs Extraídos</label>
-                                    <button type="button" id="btnAddJogador" style="background: #232732; border: 1px solid var(--border-color); color: #fff; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Add Linha Extra</button>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button type="button" id="btnCarregarEscalacaoUltima" style="background: #31313c; border: 1px solid var(--red-primary); color: #fff; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 700;"><i class="fa-solid fa-rotate-left"></i> Duplicar Jogadores do Último Registro</button>
+                                        <button type="button" id="btnAddJogador" style="background: #232732; border: 1px solid var(--border-color); color: #fff; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Add Linha Extra</button>
+                                    </div>
                                 </div>
 
                                 <div style="overflow-x: auto;">
@@ -589,6 +592,7 @@
 
         let timesCadastradosCache = {};
         let jogadoresCadastradosCache = [];
+        let ultimaEscalacaoSalva = []; // Armazena em memória a última escalação utilizada no formulário
 
         const todosCampeoesLoL = [
             "Aatrox", "Ahri", "Akali", "Akshan", "Alistar", "Ambessa", "Amumu", "Anivia", "Annie", "Aphelios", "Ashe", "Aurelion Sol", "Aurora", "Azir",
@@ -616,7 +620,7 @@
             "Warwick", "Wukong",
             "Xayah", "Xerath", "Xin Zhao",
             "Yasuo", "Yone", "Yorick", "Yunara", "Yuumi",
-            "Zac", "Zed", "Zeri", "Ziggs", "Zilean", "Zoe", "Zyra"
+            "Zac", "Zaahen", "Zed", "Zeri", "Ziggs", "Zilean", "Zoe", "Zyra"
         ];
 
         const tabs = document.querySelectorAll('.tab-btn');
@@ -688,6 +692,37 @@
             }
         }
 
+        const ordemRotasPadrao = ["TOP", "JG", "MID", "ADC", "SUP"];
+
+        function autoPreencherEscalacaoTimes() {
+            const timeA = document.getElementById('timeAzul').value.trim();
+            const timeB = document.getElementById('timeVermelho').value.trim();
+            atualizarSelectVencedorMapa();
+
+            // Se ambos os times estiverem selecionados, carrega o plantel de cada um automaticamente
+            if (timeA && timeB && timesCadastradosCache[timeA] && timesCadastradosCache[timeB]) {
+                const tbody = document.getElementById('tabelaJogadoresInput');
+                tbody.innerHTML = '';
+
+                const plantelA = timesCadastradosCache[timeA].plantel || [];
+                const plantelB = timesCadastradosCache[timeB].plantel || [];
+
+                // Preenche os 5 jogadores do Time Azul
+                for (let i = 0; i < 5; i++) {
+                    const jog = plantelA[i] || {};
+                    const lane = jog.funcao ? jog.funcao.toUpperCase() : ordemRotasPadrao[i];
+                    adicionarLinhaJogador(jog.nick || '', '', lane, 0, 0, 0);
+                }
+
+                // Preenche os 5 jogadores do Time Vermelho
+                for (let i = 0; i < 5; i++) {
+                    const jog = plantelB[i] || {};
+                    const lane = jog.funcao ? jog.funcao.toUpperCase() : ordemRotasPadrao[i];
+                    adicionarLinhaJogador(jog.nick || '', '', lane, 0, 0, 0);
+                }
+            }
+        }
+
         function atualizarSelectVencedorMapa() {
             const timeA = document.getElementById('timeAzul').value;
             const timeB = document.getElementById('timeVermelho').value;
@@ -703,15 +738,19 @@
             }
         }
 
-        document.getElementById('timeAzul').addEventListener('change', atualizarSelectVencedorMapa);
-        document.getElementById('timeVermelho').addEventListener('change', atualizarSelectVencedorMapa);
+        document.getElementById('timeAzul').addEventListener('change', autoPreencherEscalacaoTimes);
+        document.getElementById('timeVermelho').addEventListener('change', autoPreencherEscalacaoTimes);
 
         async function carregarCacheJogadores() {
             jogadoresCadastradosCache = [];
+            timesCadastradosCache = {};
             try {
                 const snap = await getDocs(collection(db, "tabela"));
                 snap.forEach(docSnap => {
                     const data = docSnap.data();
+                    const nome = data.nome || docSnap.id;
+                    timesCadastradosCache[nome] = data;
+
                     if (data.plantel && Array.isArray(data.plantel)) {
                         data.plantel.forEach(j => {
                             if (j.nick && !jogadoresCadastradosCache.includes(j.nick)) {
@@ -727,27 +766,26 @@
         }
 
         const convertBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                // Aumentado para 1200px para garantir imagens nítidas na capa das notícias
-                const MAX_WIDTH = 1200; 
-                const scaleSize = MAX_WIDTH / img.width;
-                canvas.width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
-                canvas.height = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/jpeg', 0.85)); // Qualidade de 85% para manter boa nitidez
-            };
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 1200; 
+                        const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+                        canvas.height = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    };
+                };
+                reader.onerror = (error) => reject(error);
+            });
         };
-        reader.onerror = (error) => reject(error);
-    });
-};
 
         // RECALCULAR TELA / TABELA
         async function recalcularTabela() {
@@ -1124,38 +1162,43 @@
                     partidaRefId = docRef.id;
                 }
 
+                ultimaEscalacaoSalva = [];
                 const linhas = document.querySelectorAll('#tabelaJogadoresInput tr');
-for (const linha of linhas) {
-    const lane = linha.querySelector('.input-lane').value.trim() || 'TOP';
-    const nick = linha.querySelector('.input-nick').value.trim();
-    if (!nick) continue;
+                for (const linha of linhas) {
+                    const lane = linha.querySelector('.input-lane').value.trim() || 'TOP';
+                    const nick = linha.querySelector('.input-nick').value.trim();
+                    if (!nick) continue;
 
-    const campeao = linha.querySelector('.input-campeao').value.trim() || 'Geral';
-    const k = parseInt(linha.querySelector('.input-k').value) || 0;
-    const d = parseInt(linha.querySelector('.input-d').value) || 0;
-    const a = parseInt(linha.querySelector('.input-a').value) || 0;
+                    const campeao = linha.querySelector('.input-campeao').value.trim() || 'Geral';
+                    const k = parseInt(linha.querySelector('.input-k').value) || 0;
+                    const d = parseInt(linha.querySelector('.input-d').value) || 0;
+                    const a = parseInt(linha.querySelector('.input-a').value) || 0;
 
-    const statRef = doc(collection(db, "estatisticas_jogadores"));
-    const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
+                    ultimaEscalacaoSalva.push({ nick, lane });
 
-    await setDoc(statRef, {
-        partidaId: partidaRefId,
-        lane: lane, // <-- Salva a lane exata escolhida para esse mapa
-        nick: nick,
-        campeao: campeao,
-        abates: k,
-        mortes: d,
-        assistencias: a,
-        kda: kdaCalc,
-        createdAt: new Date()
-    });
-}
+                    const statRef = doc(collection(db, "estatisticas_jogadores"));
+                    const kdaCalc = d === 0 ? (k + a) : parseFloat(((k + a) / d).toFixed(2));
+
+                    await setDoc(statRef, {
+                        partidaId: partidaRefId,
+                        lane: lane,
+                        nick: nick,
+                        campeao: campeao,
+                        abates: k,
+                        mortes: d,
+                        assistencias: a,
+                        kda: kdaCalc,
+                        createdAt: new Date()
+                    });
+                }
 
                 await recalcularTabela();
 
                 document.getElementById('msgPartidaStatus').style.color = "#00e676";
                 document.getElementById('msgPartidaStatus').innerText = partidaIdEdit ? "✓ Mapa editado e tabela atualizada!" : "✓ Mapa salvo e tabela atualizada!";
-                limparFormPartida();
+                
+                // Limpa os dados específicos do jogo mantendo os times e a escalação atual para o Jogo 2
+                prepararProximoJogoFormulario(timeA, timeB);
                 carregarPartidas();
             } catch (error) {
                 console.error(error);
@@ -1165,6 +1208,32 @@ for (const linha of linhas) {
                 btn.disabled = false;
             }
         });
+
+        function prepararProximoJogoFormulario(timeA, timeB) {
+            document.getElementById('editPartidaId').value = '';
+            document.getElementById('placarAzul').value = '';
+            document.getElementById('placarVermelho').value = '';
+            document.getElementById('vencedorMapa').value = '';
+            document.getElementById('duracaoPartida').value = '';
+            document.getElementById('printEndGame').value = '';
+            document.getElementById('ocrStatus').innerText = '';
+            document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Processador de Print & Registro de Mapa';
+            document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Confirmar e Salvar Mapa';
+            document.getElementById('btnCancelarEdicaoPartida').style.display = 'none';
+
+            // Zera os campeões e KDAs das linhas sem apagar as seleções de nicks e lanes
+            const linhas = document.querySelectorAll('#tabelaJogadoresInput tr');
+            linhas.forEach(l => {
+                const selChamp = l.querySelector('.input-campeao');
+                if (selChamp) selChamp.value = '';
+                const inK = l.querySelector('.input-k');
+                if (inK) inK.value = 0;
+                const inD = l.querySelector('.input-d');
+                if (inD) inD.value = 0;
+                const inA = l.querySelector('.input-a');
+                if (inA) inA.value = 0;
+            });
+        }
 
         function limparFormPartida() {
             document.getElementById('formPartida').reset();
@@ -1176,6 +1245,19 @@ for (const linha of linhas) {
         }
 
         document.getElementById('btnCancelarEdicaoPartida').addEventListener('click', limparFormPartida);
+
+        // BOTÃO DUPLICAR ESCALAÇÃO ANTERIOR
+        document.getElementById('btnCarregarEscalacaoUltima').addEventListener('click', () => {
+            if (ultimaEscalacaoSalva.length === 0) {
+                alert("Nenhuma escalação recente foi gravada na memória ainda nesta sessão!");
+                return;
+            }
+            const tbody = document.getElementById('tabelaJogadoresInput');
+            tbody.innerHTML = '';
+            ultimaEscalacaoSalva.forEach(item => {
+                adicionarLinhaJogador(item.nick, '', item.lane, 0, 0, 0);
+            });
+        });
 
         async function carregarPartidas() {
             const list = document.getElementById('listaPartidas');
@@ -1259,9 +1341,9 @@ for (const linha of linhas) {
                 tbody.innerHTML = '';
 
                 for (let sDoc of snapStats.docs) {
-                const st = sDoc.data();
-                await adicionarLinhaJogador(st.nick, st.campeao, st.lane || 'TOP', st.abates, st.mortes, st.assistencias);
-            }
+                    const st = sDoc.data();
+                    await adicionarLinhaJogador(st.nick, st.campeao, st.lane || 'TOP', st.abates, st.mortes, st.assistencias);
+                }
 
                 document.getElementById('tituloFormPartida').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color:#ffb74d;"></i> Editando Registro do Mapa';
                 document.getElementById('btnSalvarPartida').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações do Mapa';
@@ -1275,56 +1357,61 @@ for (const linha of linhas) {
         }
 
         async function adicionarLinhaJogador(nickSelecionado = '', campeaoSelecionado = '', laneSelecionada = 'TOP', k = 0, d = 0, a = 0) {
-    if (jogadoresCadastradosCache.length === 0) {
-        await carregarCacheJogadores();
-    }
+            if (jogadoresCadastradosCache.length === 0) {
+                await carregarCacheJogadores();
+            }
 
-    const tbody = document.getElementById('tabelaJogadoresInput');
-    const tr = document.createElement('tr');
+            const tbody = document.getElementById('tabelaJogadoresInput');
+            const tr = document.createElement('tr');
 
-    let opcoesNicks = '<option value="">Selecione o jogador...</option>';
-    jogadoresCadastradosCache.forEach(nick => {
-        const selected = (nick.toLowerCase() === nickSelecionado.toLowerCase()) ? 'selected' : '';
-        opcoesNicks += `<option value="${nick}" ${selected}>${nick}</option>`;
-    });
+            let opcoesNicks = '<option value="">Selecione o jogador...</option>';
+            jogadoresCadastradosCache.forEach(nick => {
+                const selected = (nick.toLowerCase() === nickSelecionado.toLowerCase()) ? 'selected' : '';
+                opcoesNicks += `<option value="${nick}" ${selected}>${nick}</option>`;
+            });
 
-    let opcoesCampeoes = '<option value="">Selecione o campeão...</option>';
-    todosCampeoesLoL.forEach(champ => {
-        const selected = (champ.toLowerCase() === campeaoSelecionado.toLowerCase()) ? 'selected' : '';
-        opcoesCampeoes += `<option value="${champ}" ${selected}>${champ}</option>`;
-    });
+            let opcoesCampeoes = '<option value="">Selecione o campeão...</option>';
+            todosCampeoesLoL.forEach(champ => {
+                const selected = (champ.toLowerCase() === campeaoSelecionado.toLowerCase()) ? 'selected' : '';
+                opcoesCampeoes += `<option value="${champ}" ${selected}>${champ}</option>`;
+            });
 
-    const lanesPossiveis = ["TOP", "JG", "MID", "ADC", "SUP"];
-    let opcoesLanes = '';
-    lanesPossiveis.forEach(l => {
-        const selected = (l.toLowerCase() === laneSelecionada.toLowerCase()) ? 'selected' : '';
-        opcoesLanes += `<option value="${l}" ${selected}>${l}</option>`;
-    });
+            const lanesPossiveis = ["TOP", "JG", "MID", "ADC", "SUP"];
+            let opcoesLanes = '';
+            lanesPossiveis.forEach(l => {
+                const selected = (l.toUpperCase() === laneSelecionada.toUpperCase()) ? 'selected' : '';
+                opcoesLanes += `<option value="${l}" ${selected}>${l}</option>`;
+            });
 
-    tr.innerHTML = `
-        <td>
-            <select class="input-lane" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
-                ${opcoesLanes}
-            </select>
-        </td>
-        <td>
-            <select class="input-nick" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
-                ${opcoesNicks}
-            </select>
-        </td>
-        <td>
-            <select class="input-campeao" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
-                ${opcoesCampeoes}
-            </select>
-        </td>
-        <td class="text-right"><input type="number" class="input-k" min="0" value="${k}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-        <td class="text-right"><input type="number" class="input-d" min="0" value="${d}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-        <td class="text-right"><input type="number" class="input-a" min="0" value="${a}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
-        <td><button type="button" class="btn-remove-row" style="background:transparent; border:none; color:#ff5252; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
-    `;
-    tr.querySelector('.btn-remove-row').addEventListener('click', () => tr.remove());
-    tbody.appendChild(tr);
-}
+            tr.innerHTML = `
+                <td>
+                    <select class="input-lane" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
+                        ${opcoesLanes}
+                    </select>
+                </td>
+                <td>
+                    <select class="input-nick" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required>
+                        ${opcoesNicks}
+                    </select>
+                </td>
+                <td>
+                    <select class="input-campeao" style="width:100%; padding:0.4rem; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;">
+                        ${opcoesCampeoes}
+                    </select>
+                </td>
+                <td class="text-right"><input type="number" class="input-k" min="0" value="${k}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
+                <td class="text-right"><input type="number" class="input-d" min="0" value="${d}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
+                <td class="text-right"><input type="number" class="input-a" min="0" value="${a}" style="width:60px; padding:0.4rem; text-align:right; background:var(--bg-main); border:1px solid var(--border-color); color:#fff; border-radius:4px;" required></td>
+                <td><button type="button" class="btn-remove-row" style="background:transparent; border:none; color:#ff5252; cursor:pointer;"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tr.querySelector('.btn-remove-row').addEventListener('click', () => tr.remove());
+            tbody.appendChild(tr);
+        }
+
+        document.getElementById('btnAddJogador').addEventListener('click', async () => {
+            await adicionarLinhaJogador();
+        });
+
         document.getElementById('btnProcessarPrint').addEventListener('click', async () => {
             const fileInput = document.getElementById('printEndGame');
             const status = document.getElementById('ocrStatus');
